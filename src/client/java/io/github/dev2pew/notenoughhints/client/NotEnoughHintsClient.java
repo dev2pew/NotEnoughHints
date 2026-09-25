@@ -17,6 +17,8 @@ import io.github.dev2pew.notenoughhints.client.context.ClientContextCollector;
 import io.github.dev2pew.notenoughhints.client.debug.DiagnosticsController;
 import io.github.dev2pew.notenoughhints.client.debug.DiagnosticsRenderer;
 import io.github.dev2pew.notenoughhints.client.hud.HintController;
+import io.github.dev2pew.notenoughhints.client.hud.HintDiagnostics;
+import io.github.dev2pew.notenoughhints.client.hud.HintGroupRenderState;
 import io.github.dev2pew.notenoughhints.client.hud.HintRenderer;
 import io.github.dev2pew.notenoughhints.client.integration.IntegrationBootstrap;
 import io.github.dev2pew.notenoughhints.client.integration.NestedInventoryAdapterRegistry;
@@ -43,6 +45,16 @@ public final class NotEnoughHintsClient implements ClientModInitializer {
     public static HintPackManager hintPackManager() {
         requireInitialized();
         return hintPackManager;
+    }
+
+    public static HintDiagnostics hintDiagnostics() {
+        requireInitialized();
+        return hintController.diagnostics();
+    }
+
+    public static List<HintGroupRenderState> hintRenderStates() {
+        requireInitialized();
+        return hintController.renderStates();
     }
 
     public static List<String> reloadHintPacks() {
