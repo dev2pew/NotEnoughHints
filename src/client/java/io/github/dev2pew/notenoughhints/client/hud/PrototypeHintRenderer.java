@@ -6,6 +6,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
 import io.github.dev2pew.notenoughhints.hud.HintLayout;
+import io.github.dev2pew.notenoughhints.hud.HudAnchor;
 
 public final class PrototypeHintRenderer {
     private static final int GLYPH_BORDER_RGB = 0xD8D8D8;
@@ -27,10 +28,10 @@ public final class PrototypeHintRenderer {
         }
 
         float scale = state.scale();
-        int scaledHeight =
+        int viewportWidth =
+                Math.max(1, (int) Math.floor(client.getWindow().getGuiScaledWidth() / scale));
+        int viewportHeight =
                 Math.max(1, (int) Math.floor(client.getWindow().getGuiScaledHeight() / scale));
-        int x = HintLayout.SCREEN_MARGIN;
-        int y = scaledHeight - HintLayout.SCREEN_MARGIN - HintLayout.GLYPH_HEIGHT;
 
         Component binding = Component.literal(state.bindingText());
         Component description = Component.literal(state.description());
@@ -39,6 +40,22 @@ public final class PrototypeHintRenderer {
         int descriptionWidth = client.font.width(description);
         int descriptionBoxWidth =
                 descriptionWidth + HintLayout.DESCRIPTION_HORIZONTAL_PADDING * 2;
+        int contentWidth = glyphWidth + HintLayout.ENTRY_GAP + descriptionBoxWidth;
+
+        int x =
+                HintLayout.anchoredX(
+                        HudAnchor.BOTTOM_LEFT,
+                        viewportWidth,
+                        contentWidth,
+                        HintLayout.SCREEN_MARGIN,
+                        0);
+        int y =
+                HintLayout.anchoredY(
+                        HudAnchor.BOTTOM_LEFT,
+                        viewportHeight,
+                        HintLayout.GLYPH_HEIGHT,
+                        HintLayout.SCREEN_MARGIN,
+                        0);
         int descriptionX = x + glyphWidth + HintLayout.ENTRY_GAP;
 
         graphics.pose().pushMatrix();

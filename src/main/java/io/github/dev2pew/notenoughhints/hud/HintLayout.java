@@ -24,4 +24,44 @@ public final class HintLayout {
 
         return x + Math.max(0, (width - textWidth) / 2);
     }
+
+    public static int anchoredX(
+            HudAnchor anchor, int viewportWidth, int contentWidth, int margin, int offsetX) {
+        validateExtent(viewportWidth, "viewportWidth");
+        validateExtent(contentWidth, "contentWidth");
+        validateExtent(margin, "margin");
+
+        int base =
+                switch (anchor) {
+                    case TOP_LEFT, CENTER_LEFT, BOTTOM_LEFT -> margin;
+                    case TOP_CENTER, CENTER, BOTTOM_CENTER -> (viewportWidth - contentWidth) / 2;
+                    case TOP_RIGHT, CENTER_RIGHT, BOTTOM_RIGHT ->
+                            viewportWidth - margin - contentWidth;
+                };
+
+        return base + offsetX;
+    }
+
+    public static int anchoredY(
+            HudAnchor anchor, int viewportHeight, int contentHeight, int margin, int offsetY) {
+        validateExtent(viewportHeight, "viewportHeight");
+        validateExtent(contentHeight, "contentHeight");
+        validateExtent(margin, "margin");
+
+        int base =
+                switch (anchor) {
+                    case TOP_LEFT, TOP_CENTER, TOP_RIGHT -> margin;
+                    case CENTER_LEFT, CENTER, CENTER_RIGHT -> (viewportHeight - contentHeight) / 2;
+                    case BOTTOM_LEFT, BOTTOM_CENTER, BOTTOM_RIGHT ->
+                            viewportHeight - margin - contentHeight;
+                };
+
+        return base + offsetY;
+    }
+
+    private static void validateExtent(int value, String name) {
+        if (value < 0) {
+            throw new IllegalArgumentException(name + " must not be negative");
+        }
+    }
 }

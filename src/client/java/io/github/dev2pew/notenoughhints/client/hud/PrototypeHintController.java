@@ -2,13 +2,13 @@ package io.github.dev2pew.notenoughhints.client.hud;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 
 import io.github.dev2pew.notenoughhints.client.config.NehConfigManager;
 import io.github.dev2pew.notenoughhints.client.keybind.KeyBindingCatalog;
 import io.github.dev2pew.notenoughhints.client.keybind.KeyBindingDescriptor;
 import io.github.dev2pew.notenoughhints.config.NehConfig;
+import io.github.dev2pew.notenoughhints.context.ClientContext;
 
 public final class PrototypeHintController {
     private static final String PROTOTYPE_BINDING_ID = "key.inventory";
@@ -24,9 +24,9 @@ public final class PrototypeHintController {
         this.keyBindingCatalog = keyBindingCatalog;
     }
 
-    public void tick(Minecraft client) {
+    public void update(ClientContext context) {
         NehConfig config = configManager.current();
-        if (!config.enabled() || client.player == null) {
+        if (!config.enabled() || !context.worldPresent()) {
             renderState.set(PrototypeHintRenderState.hidden());
             return;
         }

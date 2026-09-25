@@ -25,7 +25,30 @@ class HintLayoutTest {
     }
 
     @Test
+    void anchorsContentAtAllHorizontalPositions() {
+        assertEquals(5, HintLayout.anchoredX(HudAnchor.TOP_LEFT, 200, 40, 5, 0));
+        assertEquals(80, HintLayout.anchoredX(HudAnchor.TOP_CENTER, 200, 40, 5, 0));
+        assertEquals(155, HintLayout.anchoredX(HudAnchor.TOP_RIGHT, 200, 40, 5, 0));
+    }
+
+    @Test
+    void anchorsContentAtAllVerticalPositions() {
+        assertEquals(5, HintLayout.anchoredY(HudAnchor.TOP_LEFT, 120, 20, 5, 0));
+        assertEquals(50, HintLayout.anchoredY(HudAnchor.CENTER, 120, 20, 5, 0));
+        assertEquals(95, HintLayout.anchoredY(HudAnchor.BOTTOM_RIGHT, 120, 20, 5, 0));
+    }
+
+    @Test
+    void appliesOffsetsAfterAnchoring() {
+        assertEquals(12, HintLayout.anchoredX(HudAnchor.TOP_LEFT, 200, 40, 5, 7));
+        assertEquals(92, HintLayout.anchoredY(HudAnchor.BOTTOM_LEFT, 120, 20, 5, -3));
+    }
+
+    @Test
     void rejectsNegativeWidths() {
         assertThrows(IllegalArgumentException.class, () -> HintLayout.glyphWidth(-1));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> HintLayout.anchoredX(HudAnchor.TOP_LEFT, -1, 10, 0, 0));
     }
 }

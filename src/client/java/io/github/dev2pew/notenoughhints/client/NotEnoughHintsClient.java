@@ -10,6 +10,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 
 import io.github.dev2pew.notenoughhints.NotEnoughHints;
 import io.github.dev2pew.notenoughhints.client.config.NehConfigManager;
+import io.github.dev2pew.notenoughhints.client.context.ClientContextCollector;
 import io.github.dev2pew.notenoughhints.client.hud.PrototypeHintController;
 import io.github.dev2pew.notenoughhints.client.hud.PrototypeHintRenderer;
 import io.github.dev2pew.notenoughhints.client.keybind.KeyBindingCatalog;
@@ -23,6 +24,7 @@ public final class NotEnoughHintsClient implements ClientModInitializer {
         configManager.load();
 
         KeyBindingCatalog keyBindingCatalog = new KeyBindingCatalog();
+        ClientContextCollector contextCollector = new ClientContextCollector(keyBindingCatalog);
 
         PrototypeHintController prototypeController =
                 new PrototypeHintController(configManager, keyBindingCatalog);
@@ -35,7 +37,8 @@ public final class NotEnoughHintsClient implements ClientModInitializer {
                         LOGGER.info("Discovered {} key mappings", keyBindingCatalog.size());
                     }
                 });
-        ClientTickEvents.END_CLIENT_TICK.register(prototypeController::tick);
+        ClientTickEvents.END_CLIENT_TICK.register(
+                client -> prototypeController.update(contextCollector.collect(client)));
 
         HudElementRegistry.attachElementBefore(
                 VanillaHudElements.CHAT, NotEnoughHints.id("hints"), prototypeRenderer::render);
