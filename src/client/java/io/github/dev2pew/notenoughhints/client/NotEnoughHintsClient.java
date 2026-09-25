@@ -118,7 +118,8 @@ public final class NotEnoughHintsClient implements ClientModInitializer {
         HintRenderer hintRenderer = new HintRenderer(hintController);
 
         DiagnosticsController diagnosticsController =
-                new DiagnosticsController(configManager, nestedInventoryAdapters);
+                new DiagnosticsController(
+                        configManager, nestedInventoryAdapters, hintController);
         DiagnosticsRenderer diagnosticsRenderer = new DiagnosticsRenderer(diagnosticsController);
 
         ClientTickEvents.START_CLIENT_TICK.register(

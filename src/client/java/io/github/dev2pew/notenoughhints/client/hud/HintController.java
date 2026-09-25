@@ -28,6 +28,10 @@ public final class HintController {
     private final RuleEvaluator ruleEvaluator = new RuleEvaluator();
     private final AtomicReference<List<HintGroupRenderState>> renderStates =
             new AtomicReference<>(List.of());
+    private final AtomicReference<HintDiagnostics> diagnostics =
+            new AtomicReference<>(HintDiagnostics.empty());
+    private volatile DefinitionState diagnosedDefinitions;
+    private volatile int diagnosedCatalogSize = -1;
 
     public HintController(
             NehConfigManager configManager,
@@ -51,17 +55,21 @@ public final class HintController {
                         .map(HintDefinition::id)
                         .collect(Collectors.toUnmodifiableSet());
         definitions = new DefinitionState(groupCopy, ruleCopy, defaultVisibleHintIds);
+        diagnosedDefinitions = null;
+        diagnosedCatalogSize = -1;
         renderStates.set(List.of());
     }
 
     public void update(ClientContext context) {
         NehConfig config = configManager.current();
+        DefinitionState currentDefinitions = definitions;
+        Set<String> unresolvedBindingIds = unresolvedBindingIds(currentDefinitions);
+
         if (!config.enabled() || !context.worldPresent()) {
             renderStates.set(List.of());
+            diagnostics.set(new HintDiagnostics(List.of(), unresolvedBindingIds, 0));
             return;
         }
-
-        DefinitionState currentDefinitions = definitions;
         RuleEvaluationResult evaluation =
                 ruleEvaluator.evaluate(
                         context,
@@ -95,11 +103,41 @@ public final class HintController {
             }
         }
 
-        renderStates.set(List.copyOf(nextStates));
+        List<HintGroupRenderState> immutableStates = List.copyOf(nextStates);
+        renderStates.set(immutableStates);
+        int visibleHintCount =
+                immutableStates.stream().mapToInt(state -> state.hints().size()).sum();
+        diagnostics.set(
+                new HintDiagnostics(
+                        evaluation.matchedRuleIds(),
+                        unresolvedBindingIds,
+                        visibleHintCount));
     }
 
     public List<HintGroupRenderState> renderStates() {
         return renderStates.get();
+    }
+
+    public HintDiagnostics diagnostics() {
+        return diagnostics.get();
+    }
+
+    private Set<String> unresolvedBindingIds(DefinitionState currentDefinitions) {
+        int catalogSize = keyBindingCatalog.size();
+        if (diagnosedDefinitions == currentDefinitions && diagnosedCatalogSize == catalogSize) {
+            return diagnostics.get().unresolvedBindingIds();
+        }
+
+        Set<String> unresolved =
+                currentDefinitions.groups().stream()
+                        .flatMap(group -> group.hints().stream())
+                        .map(HintDefinition::bindingId)
+                        .filter(bindingId -> keyBindingCatalog.find(bindingId).isEmpty())
+                        .collect(Collectors.toUnmodifiableSet());
+
+        diagnosedDefinitions = currentDefinitions;
+        diagnosedCatalogSize = catalogSize;
+        return unresolved;
     }
 
     private java.util.Optional<ResolvedHint> resolve(HintDefinition definition, NehConfig config) {
