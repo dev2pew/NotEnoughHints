@@ -1,5 +1,7 @@
 package io.github.dev2pew.notenoughhints.client;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,10 +15,14 @@ import io.github.dev2pew.notenoughhints.client.config.NehConfigManager;
 import io.github.dev2pew.notenoughhints.client.context.ClientContextCollector;
 import io.github.dev2pew.notenoughhints.client.debug.DiagnosticsController;
 import io.github.dev2pew.notenoughhints.client.debug.DiagnosticsRenderer;
-import io.github.dev2pew.notenoughhints.client.hud.PrototypeHintController;
-import io.github.dev2pew.notenoughhints.client.hud.PrototypeHintRenderer;
+import io.github.dev2pew.notenoughhints.client.hud.HintController;
+import io.github.dev2pew.notenoughhints.client.hud.HintRenderer;
 import io.github.dev2pew.notenoughhints.client.keybind.KeyBindingCatalog;
 import io.github.dev2pew.notenoughhints.context.ClientContext;
+import io.github.dev2pew.notenoughhints.hud.HintDefinition;
+import io.github.dev2pew.notenoughhints.hud.HintFlow;
+import io.github.dev2pew.notenoughhints.hud.HintGroupDefinition;
+import io.github.dev2pew.notenoughhints.hud.HudAnchor;
 
 public final class NotEnoughHintsClient implements ClientModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger(NotEnoughHints.MOD_ID);
@@ -29,9 +35,21 @@ public final class NotEnoughHintsClient implements ClientModInitializer {
         KeyBindingCatalog keyBindingCatalog = new KeyBindingCatalog();
         ClientContextCollector contextCollector = new ClientContextCollector(keyBindingCatalog);
 
-        PrototypeHintController prototypeController =
-                new PrototypeHintController(configManager, keyBindingCatalog);
-        PrototypeHintRenderer prototypeRenderer = new PrototypeHintRenderer(prototypeController);
+        HintGroupDefinition developmentGroup =
+                new HintGroupDefinition(
+                        "development",
+                        HudAnchor.BOTTOM_LEFT,
+                        0,
+                        0,
+                        HintFlow.HORIZONTAL,
+                        6,
+                        List.of(
+                                new HintDefinition(
+                                        "inventory", "key.inventory", "", true)));
+
+        HintController hintController =
+                new HintController(configManager, keyBindingCatalog, developmentGroup);
+        HintRenderer hintRenderer = new HintRenderer(hintController);
 
         DiagnosticsController diagnosticsController = new DiagnosticsController(configManager);
         DiagnosticsRenderer diagnosticsRenderer = new DiagnosticsRenderer(diagnosticsController);
@@ -46,12 +64,12 @@ public final class NotEnoughHintsClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(
                 client -> {
                     ClientContext context = contextCollector.collect(client);
-                    prototypeController.update(context);
+                    hintController.update(context);
                     diagnosticsController.update(context);
                 });
 
         HudElementRegistry.attachElementBefore(
-                VanillaHudElements.CHAT, NotEnoughHints.id("hints"), prototypeRenderer::render);
+                VanillaHudElements.CHAT, NotEnoughHints.id("hints"), hintRenderer::render);
         HudElementRegistry.attachElementBefore(
                 VanillaHudElements.CHAT,
                 NotEnoughHints.id("diagnostics"),
