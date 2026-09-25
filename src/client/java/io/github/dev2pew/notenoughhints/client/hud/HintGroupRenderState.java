@@ -12,6 +12,8 @@ public record HintGroupRenderState(
         int offsetY,
         HintFlow flow,
         int entryGap,
+        int lineGap,
+        int maxWidth,
         float scale,
         float opacity,
         List<ResolvedHint> hints) {
@@ -26,6 +28,8 @@ public record HintGroupRenderState(
                 0,
                 0,
                 HintFlow.HORIZONTAL,
+                0,
+                0,
                 0,
                 1.0F,
                 1.0F,

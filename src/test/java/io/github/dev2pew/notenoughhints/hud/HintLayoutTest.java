@@ -45,6 +45,13 @@ class HintLayoutTest {
     }
 
     @Test
+    void clampsPlacementToSafeViewportBounds() {
+        assertEquals(5, HintLayout.clampToSafeOrigin(-20, 200, 40, 5));
+        assertEquals(155, HintLayout.clampToSafeOrigin(180, 200, 40, 5));
+        assertEquals(5, HintLayout.clampToSafeOrigin(20, 30, 40, 5));
+    }
+
+    @Test
     void rejectsNegativeWidths() {
         assertThrows(IllegalArgumentException.class, () -> HintLayout.glyphWidth(-1));
         assertThrows(

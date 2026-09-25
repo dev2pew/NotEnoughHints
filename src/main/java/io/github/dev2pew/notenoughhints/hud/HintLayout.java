@@ -59,6 +59,20 @@ public final class HintLayout {
         return base + offsetY;
     }
 
+    public static int clampToSafeOrigin(
+            int origin, int viewportExtent, int contentExtent, int margin) {
+        validateExtent(viewportExtent, "viewportExtent");
+        validateExtent(contentExtent, "contentExtent");
+        validateExtent(margin, "margin");
+
+        int minimum = margin;
+        int maximum = viewportExtent - margin - contentExtent;
+        if (maximum < minimum) {
+            return minimum;
+        }
+        return Math.max(minimum, Math.min(maximum, origin));
+    }
+
     private static void validateExtent(int value, String name) {
         if (value < 0) {
             throw new IllegalArgumentException(name + " must not be negative");

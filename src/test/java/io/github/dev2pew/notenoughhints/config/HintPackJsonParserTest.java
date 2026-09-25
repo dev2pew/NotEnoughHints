@@ -29,6 +29,8 @@ class HintPackJsonParserTest {
                       "id": "main",
                       "anchor": "bottom_left",
                       "flow": "horizontal",
+                      "line_gap": 3,
+                      "max_width": 140,
                       "hints": [
                         {
                           "id": "inventory",
@@ -67,6 +69,8 @@ class HintPackJsonParserTest {
 
         assertEquals(1, pack.groups().size());
         assertEquals(HudAnchor.BOTTOM_LEFT, pack.groups().getFirst().anchor());
+        assertEquals(3, pack.groups().getFirst().lineGap());
+        assertEquals(140, pack.groups().getFirst().maxWidth());
         assertInstanceOf(
                 HintDescription.Translation.class,
                 pack.groups().getFirst().hints().getFirst().description());

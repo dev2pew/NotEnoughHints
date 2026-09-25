@@ -32,6 +32,8 @@ IDs for groups, hints, and rules must be unique across all loaded files.
   "offset_y": 0,
   "flow": "horizontal",
   "entry_gap": 6,
+  "line_gap": 4,
+  "max_width": 0,
   "hints": []
 }
 ```
@@ -49,6 +51,10 @@ Supported anchors:
 - `bottom_right`
 
 Supported flow values are `horizontal` and `vertical`.
+
+`entry_gap` controls spacing between entries in the same row, or between entries in a vertical group. `line_gap` controls spacing between rows created by horizontal wrapping.
+
+`max_width` is the group wrapping width in GUI pixels before NEH scale is applied. A value of `0` uses the available safe-screen width. Horizontal groups wrap whole hint entries onto additional rows rather than shrinking key glyphs or descriptions. Group placement is clamped to the configured screen margin after anchor offsets are applied.
 
 ## Hints
 

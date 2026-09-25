@@ -45,22 +45,24 @@ public final class HintRenderer {
             return;
         }
 
-        int contentWidth =
-                state.flow() == HintFlow.HORIZONTAL
-                        ? entries.stream().mapToInt(EntryLayout::width).sum()
-                                + state.entryGap() * (entries.size() - 1)
-                        : entries.stream().mapToInt(EntryLayout::width).max().orElse(0);
-        int contentHeight =
-                state.flow() == HintFlow.VERTICAL
-                        ? entries.size() * HintLayout.GLYPH_HEIGHT
-                                + state.entryGap() * (entries.size() - 1)
-                        : HintLayout.GLYPH_HEIGHT;
-
         float scale = state.scale();
         int viewportWidth =
                 Math.max(1, (int) Math.floor(client.getWindow().getGuiScaledWidth() / scale));
         int viewportHeight =
                 Math.max(1, (int) Math.floor(client.getWindow().getGuiScaledHeight() / scale));
+        int safeWidth = Math.max(1, viewportWidth - HintLayout.SCREEN_MARGIN * 2);
+        int wrapWidth =
+                state.maxWidth() > 0
+                        ? Math.min(state.maxWidth(), safeWidth)
+                        : safeWidth;
+
+        List<RowLayout> rows = layoutRows(entries, state, wrapWidth);
+        int contentWidth = rows.stream().mapToInt(RowLayout::width).max().orElse(0);
+        int rowGap =
+                state.flow() == HintFlow.VERTICAL ? state.entryGap() : state.lineGap();
+        int contentHeight =
+                rows.size() * HintLayout.GLYPH_HEIGHT
+                        + Math.max(0, rows.size() - 1) * rowGap;
 
         int originX =
                 HintLayout.anchoredX(
@@ -76,20 +78,24 @@ public final class HintRenderer {
                         contentHeight,
                         HintLayout.SCREEN_MARGIN,
                         state.offsetY());
+        originX =
+                HintLayout.clampToSafeOrigin(
+                        originX, viewportWidth, contentWidth, HintLayout.SCREEN_MARGIN);
+        originY =
+                HintLayout.clampToSafeOrigin(
+                        originY, viewportHeight, contentHeight, HintLayout.SCREEN_MARGIN);
 
         graphics.pose().pushMatrix();
         graphics.pose().scale(scale, scale);
 
-        int x = originX;
         int y = originY;
-        for (EntryLayout entry : entries) {
-            drawEntry(graphics, client, entry, x, y, state.opacity());
-
-            if (state.flow() == HintFlow.HORIZONTAL) {
+        for (RowLayout row : rows) {
+            int x = originX;
+            for (EntryLayout entry : row.entries()) {
+                drawEntry(graphics, client, entry, x, y, state.opacity());
                 x += entry.width() + state.entryGap();
-            } else {
-                y += HintLayout.GLYPH_HEIGHT + state.entryGap();
             }
+            y += HintLayout.GLYPH_HEIGHT + rowGap;
         }
 
         graphics.pose().popMatrix();
@@ -116,6 +122,42 @@ public final class HintRenderer {
                             glyphWidth + HintLayout.ENTRY_GAP + descriptionBoxWidth));
         }
         return entries;
+    }
+
+    private static List<RowLayout> layoutRows(
+            List<EntryLayout> entries, HintGroupRenderState state, int wrapWidth) {
+        if (state.flow() == HintFlow.VERTICAL) {
+            return entries.stream()
+                    .map(entry -> new RowLayout(List.of(entry), entry.width()))
+                    .toList();
+        }
+
+        List<RowLayout> rows = new ArrayList<>();
+        List<EntryLayout> currentEntries = new ArrayList<>();
+        int currentWidth = 0;
+
+        for (EntryLayout entry : entries) {
+            int nextWidth =
+                    currentEntries.isEmpty()
+                            ? entry.width()
+                            : currentWidth + state.entryGap() + entry.width();
+            if (!currentEntries.isEmpty() && nextWidth > wrapWidth) {
+                rows.add(new RowLayout(List.copyOf(currentEntries), currentWidth));
+                currentEntries.clear();
+                currentWidth = 0;
+            }
+
+            if (!currentEntries.isEmpty()) {
+                currentWidth += state.entryGap();
+            }
+            currentEntries.add(entry);
+            currentWidth += entry.width();
+        }
+
+        if (!currentEntries.isEmpty()) {
+            rows.add(new RowLayout(List.copyOf(currentEntries), currentWidth));
+        }
+        return List.copyOf(rows);
     }
 
     private static void drawEntry(
@@ -173,4 +215,6 @@ public final class HintRenderer {
             int glyphWidth,
             int descriptionBoxWidth,
             int width) {}
+
+    private record RowLayout(List<EntryLayout> entries, int width) {}
 }

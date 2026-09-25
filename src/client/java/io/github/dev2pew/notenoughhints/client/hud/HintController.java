@@ -106,6 +106,8 @@ public final class HintController {
                                 override == null ? group.offsetY() : override.offsetY(),
                                 group.flow(),
                                 group.entryGap(),
+                                group.lineGap(),
+                                group.maxWidth(),
                                 config.scale(),
                                 config.opacity(),
                                 resolved));

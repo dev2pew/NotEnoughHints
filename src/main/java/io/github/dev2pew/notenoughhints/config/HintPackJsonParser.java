@@ -51,6 +51,8 @@ public final class HintPackJsonParser {
         HintFlow flow = parseEnum(
                 HintFlow.class, optionalString(object, "flow", "horizontal"), path + ".flow");
         int entryGap = optionalInt(object, "entry_gap", 6);
+        int lineGap = optionalInt(object, "line_gap", 4);
+        int maxWidth = optionalInt(object, "max_width", 0);
 
         JsonArray hintsArray = optionalArray(object, "hints");
         List<HintDefinition> hints = new ArrayList<>(hintsArray.size());
@@ -61,7 +63,8 @@ public final class HintPackJsonParser {
                             path + ".hints[" + i + "]"));
         }
 
-        return new HintGroupDefinition(id, anchor, offsetX, offsetY, flow, entryGap, hints);
+        return new HintGroupDefinition(
+                id, anchor, offsetX, offsetY, flow, entryGap, lineGap, maxWidth, hints);
     }
 
     private HintDefinition parseHint(JsonObject object, String path) {

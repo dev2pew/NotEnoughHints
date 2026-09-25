@@ -10,6 +10,8 @@ public record HintGroupDefinition(
         int offsetY,
         HintFlow flow,
         int entryGap,
+        int lineGap,
+        int maxWidth,
         List<HintDefinition> hints) {
     public HintGroupDefinition {
         Objects.requireNonNull(id, "id");
@@ -22,6 +24,12 @@ public record HintGroupDefinition(
         }
         if (entryGap < 0) {
             throw new IllegalArgumentException("entryGap must not be negative");
+        }
+        if (lineGap < 0) {
+            throw new IllegalArgumentException("lineGap must not be negative");
+        }
+        if (maxWidth < 0) {
+            throw new IllegalArgumentException("maxWidth must not be negative");
         }
     }
 }
