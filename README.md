@@ -6,7 +6,7 @@ NEH is intended for heavily customized modpacks where players need temporary, co
 
 ## Status
 
-Planning only. No playable build exists yet.
+Development has started on the `dev` branch. The current build is an early prototype, not a release.
 
 Initial implementation target: Minecraft Java Edition 1.21.8 on Fabric.
 
