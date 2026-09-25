@@ -103,10 +103,14 @@ jobs:
             gh release delete dev --yes --cleanup-tag
           fi
 
-          gh release create dev \
+          if gh release view nightly >/dev/null 2>&1; then
+            gh release delete nightly --yes --cleanup-tag
+          fi
+
+          gh release create nightly \
             "dist/not-enough-hints-${MOD_VERSION}-fabric-1.21.8.jar#Fabric 1.21.8 development JAR" \
             "dist/not-enough-hints-${MOD_VERSION}-fabric-1.21.7.jar#Fabric 1.21.7 development JAR" \
             --target "$GITHUB_SHA" \
-            --title "Not Enough Hints dev $SHORT_SHA" \
-            --notes "Automated development build from dev at commit $GITHUB_SHA. Both Minecraft targets passed the production client GameTest. This is a prerelease and may contain incomplete features." \
+            --title "Not Enough Hints nightly $SHORT_SHA" \
+            --notes "Automated nightly build from dev at commit $GITHUB_SHA. Both Minecraft targets passed the production client GameTest. This is a prerelease and may contain incomplete features." \
             --prerelease
