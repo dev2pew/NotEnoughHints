@@ -35,6 +35,9 @@ jobs:
       - name: Check formatting and build
         run: gradle spotlessCheck clean build --no-daemon --stacktrace
 
+      - name: Run production client game test
+        run: gradle runProductionClientGameTest --no-daemon --stacktrace
+
       - name: Find development JAR
         id: jar
         shell: bash
