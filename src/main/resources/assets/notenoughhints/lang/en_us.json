@@ -15,5 +15,7 @@
   "category.notenoughhints.hint_packs": "Hint packs",
   "option.notenoughhints.reload_hint_packs": "Reload hint packs",
   "option.notenoughhints.reload_hint_packs.description": "Reload config/not-enough-hints/hints/*.json. Reopen this screen to refresh the load summary.",
-  "category.notenoughhints.rules": "Rules"
+  "category.notenoughhints.rules": "Rules",
+  "key.categories.notenoughhints": "Not Enough Hints",
+  "key.notenoughhints.open_config": "Open NEH settings"
 }

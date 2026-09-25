@@ -11,6 +11,8 @@ Target dependency:
 
 YACL is a required client dependency because the NEH config-screen implementation references its API directly. Mod Menu remains optional and is declared through the `modmenu` entry point plus Fabric's `suggests` metadata.
 
+NEH also registers an unbound `Open NEH settings` key mapping. Players who do not install Mod Menu can assign that mapping in Minecraft's Controls screen and open the same YACL screen directly.
+
 ## First settings screen
 
 The current screen edits:
@@ -37,7 +39,6 @@ The first screen does not complete M6. Remaining work includes:
 - hint-group placement editing;
 - detailed validation and unresolved-reference reporting;
 - import workflow;
-- a direct NEH access path when Mod Menu is absent, if required by the final UX;
 - localized strings beyond English.
 
 A full visual rule builder remains outside the first-release requirement.

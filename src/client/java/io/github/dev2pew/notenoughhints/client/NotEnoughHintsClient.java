@@ -20,6 +20,7 @@ import io.github.dev2pew.notenoughhints.client.hud.HintController;
 import io.github.dev2pew.notenoughhints.client.hud.HintRenderer;
 import io.github.dev2pew.notenoughhints.client.integration.IntegrationBootstrap;
 import io.github.dev2pew.notenoughhints.client.integration.NestedInventoryAdapterRegistry;
+import io.github.dev2pew.notenoughhints.client.input.NehKeyBindings;
 import io.github.dev2pew.notenoughhints.client.keybind.KeyBindingCatalog;
 import io.github.dev2pew.notenoughhints.config.HintPack;
 import io.github.dev2pew.notenoughhints.context.ClientContext;
@@ -90,6 +91,8 @@ public final class NotEnoughHintsClient implements ClientModInitializer {
         hintPackManager.load();
         HintPack hintPack = hintPackManager.current();
 
+        NehKeyBindings.register();
+
         KeyBindingCatalog keyBindingCatalog = new KeyBindingCatalog();
         NestedInventoryAdapterRegistry nestedInventoryAdapters =
                 new NestedInventoryAdapterRegistry();
@@ -131,6 +134,7 @@ public final class NotEnoughHintsClient implements ClientModInitializer {
                 });
         ClientTickEvents.END_CLIENT_TICK.register(
                 client -> {
+                    NehKeyBindings.handle(client);
                     ClientContext context = contextCollector.collect(client);
                     hintController.update(context);
                     diagnosticsController.update(context);
