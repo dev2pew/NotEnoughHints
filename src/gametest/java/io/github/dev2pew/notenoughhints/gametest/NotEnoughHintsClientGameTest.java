@@ -165,6 +165,7 @@ public final class NotEnoughHintsClientGameTest implements FabricClientGameTest 
                 verifyScreenRule(context);
                 verifyItemContextRules(singleplayer, context);
                 verifyDimensionRule(singleplayer, context);
+                verifyGuiScaleScreenshots(context);
 
                 context.takeScreenshot("neh-context-state-smoke");
             }
@@ -336,6 +337,30 @@ public final class NotEnoughHintsClientGameTest implements FabricClientGameTest 
                                         .toString()
                                         .equals("minecraft:overworld"));
         waitForRule(context, "gametest-nether", false);
+    }
+
+    private static void verifyGuiScaleScreenshots(ClientGameTestContext context) {
+        int originalScale =
+                context.computeOnClient(client -> client.options.guiScale().get());
+
+        try {
+            takeGuiScaleScreenshot(context, 1, "neh-gui-scale-1");
+            takeGuiScaleScreenshot(context, 2, "neh-gui-scale-2");
+        } finally {
+            context.runOnClient(client -> client.options.guiScale().set(originalScale));
+            context.waitFor(
+                    client ->
+                            originalScale == 0
+                                    || client.getWindow().getGuiScale() == originalScale);
+        }
+    }
+
+    private static void takeGuiScaleScreenshot(
+            ClientGameTestContext context, int scale, String screenshotName) {
+        context.runOnClient(client -> client.options.guiScale().set(scale));
+        context.waitFor(client -> client.getWindow().getGuiScale() == scale);
+        context.waitFor(client -> findHint(INVENTORY_DESCRIPTION) != null);
+        context.takeScreenshot(screenshotName);
     }
 
     private static void verifyRuleForCommand(

@@ -30,4 +30,4 @@ The production client suite also installs a temporary hint pack and verifies run
 - opening and closing the vanilla Options screen updates a `screen_class` rule using the stable Fabric intermediary selector `net.minecraft.class_429`;
 - test-owned config and hint-pack files are restored or removed before shutdown.
 
-Representative Minecraft GUI-scale screenshots remain pending.
+The suite captures the NEH HUD at Minecraft GUI scales 1 and 2 after waiting for the window scale to apply, then restores the player's original GUI-scale option before shutdown.
