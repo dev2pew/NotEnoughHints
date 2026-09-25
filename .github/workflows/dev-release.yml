@@ -40,15 +40,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
-          mapfile -t JARS < <(
-            find build/libs -maxdepth 1 -type f -name '*.jar'               ! -name '*-sources.jar'               ! -name '*-javadoc.jar'               ! -name '*-dev.jar'               | sort
-          )
+          mapfile -t JARS < <(find build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' ! -name '*-dev.jar' | sort)
 
           if [[ "${#JARS[@]}" -ne 1 ]]; then
             echo "::error::Expected exactly one development JAR, found ${#JARS[@]}."
-            printf '%s
-' "${JARS[@]}"
+            for jar in "${JARS[@]}"; do echo "$jar"; done
             exit 1
           fi
 
@@ -66,4 +62,4 @@ jobs:
             gh release delete dev --yes --cleanup-tag
           fi
 
-          gh release create dev             "${{ steps.jar.outputs.jar }}#Fabric 1.21.8 development JAR"             --target "$GITHUB_SHA"             --title "Not Enough Hints dev ${{ steps.jar.outputs.short_sha }}"             --notes "Automated development build from `dev` at commit `$GITHUB_SHA`. This is a prerelease and may contain incomplete features."             --prerelease
+          gh release create dev "${{ steps.jar.outputs.jar }}#Fabric 1.21.8 development JAR" --target "$GITHUB_SHA" --title "Not Enough Hints dev ${{ steps.jar.outputs.short_sha }}" --notes "Automated development build from dev at commit $GITHUB_SHA. This is a prerelease and may contain incomplete features." --prerelease

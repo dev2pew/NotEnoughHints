@@ -52,15 +52,12 @@ jobs:
 
           VERSION="${{ inputs.version }}"
 
-          if [[ ! "$VERSION" =~ ^[0-9]+.[0-9]+.[0-9]+$ ]]; then
+          if [[ ! "$VERSION" =~ ^[0-9]+[.][0-9]+[.][0-9]+$ ]]; then
             echo "::error::Version must use X.Y.Z, for example 0.1.0."
             exit 1
           fi
 
-          PROJECT_VERSION="$(
-            sed -n 's/^mod_version=//p' gradle.properties |
-            tr -d ''
-          )"
+          PROJECT_VERSION="$(sed -n 's/^mod_version=//p' gradle.properties | tr -d '[:space:]')"
 
           if [[ -z "$PROJECT_VERSION" ]]; then
             echo "::error::mod_version was not found in gradle.properties."
@@ -89,15 +86,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
-          mapfile -t JARS < <(
-            find build/libs -maxdepth 1 -type f -name '*.jar'               ! -name '*-sources.jar'               ! -name '*-javadoc.jar'               ! -name '*-dev.jar'               | sort
-          )
+          mapfile -t JARS < <(find build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' ! -name '*-dev.jar' | sort)
 
           if [[ "${#JARS[@]}" -ne 1 ]]; then
             echo "::error::Expected exactly one release JAR, found ${#JARS[@]}."
-            printf '%s
-' "${JARS[@]}"
+            for jar in "${JARS[@]}"; do echo "$jar"; done
             exit 1
           fi
 
@@ -108,4 +101,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          gh release create "${{ steps.version.outputs.tag }}"             "${{ steps.jar.outputs.jar }}#Fabric 1.21.8 mod JAR"             --target "$GITHUB_SHA"             --title "Not Enough Hints ${{ steps.version.outputs.tag }}"             --generate-notes             --latest
+          gh release create "${{ steps.version.outputs.tag }}" "${{ steps.jar.outputs.jar }}#Fabric 1.21.8 mod JAR" --target "$GITHUB_SHA" --title "Not Enough Hints ${{ steps.version.outputs.tag }}" --generate-notes --latest
