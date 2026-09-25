@@ -17,8 +17,9 @@ Primary use cases:
 3. Show several hints while another item is held.
 4. Change HUD content by dimension.
 5. Change HUD content while an inventory or other screen is open.
-6. Combine conditions such as screen, dimension, held item, inventory contents, and mod presence.
-7. Disable the hint system globally once the player no longer needs it.
+6. Combine conditions such as screen, dimension, held item, equipped armor, inventory contents, and mod presence.
+7. React to exact equipment state, including main hand, off hand, helmet, chestplate, leggings, and boots.
+8. Disable the hint system globally once the player no longer needs it.
 
 ## 2. Non-goals for the first release
 
@@ -78,6 +79,7 @@ Candidate fields:
 - active handled-menu type identifier when known;
 - main-hand ItemStack identifier;
 - off-hand ItemStack identifier;
+- equipped armor ItemStack identifiers for head, chest, legs, and feet;
 - selected hotbar slot;
 - inventory item summary;
 - player state flags required by configured predicates;
@@ -111,6 +113,7 @@ Condition nodes:
 - main_hand_item;
 - off_hand_item;
 - held_item_any_hand;
+- equipment_slot_item;
 - inventory_contains;
 - keybinding_exists;
 - integration_state.
@@ -209,6 +212,7 @@ Initial diagnostics:
 - current Screen class;
 - current handled-menu ID when available;
 - main/off-hand item IDs;
+- equipped armor item IDs for head, chest, legs, and feet;
 - selected slot;
 - referenced inventory query results;
 - loaded mod IDs;
@@ -278,11 +282,26 @@ Dimension checks use the active client's world registry key/identifier.
 
 Rules referencing a missing dimension remain valid configuration but evaluate false while unresolved.
 
-### 6.2 Held items
+### 6.2 Held and equipped items
 
 Held-item predicates compare stable item identifiers against main hand, off hand, or either hand.
 
-Optional future predicates may inspect components, but version 1 should not expose arbitrary component expressions.
+The `equipment_slot_item` predicate checks one exact player equipment slot. Version 1 supports these player slots:
+
+- `main_hand`;
+- `off_hand`;
+- `head`;
+- `chest`;
+- `legs`;
+- `feet`.
+
+This is distinct from an inventory search. A helmet in the main inventory does not satisfy `equipment_slot_item(slot=head, ...)`; it must be equipped in the head slot.
+
+A complete armor-set condition is expressed with an `all` node containing four `equipment_slot_item` predicates. A rule that accepts any one of several equipped pieces uses an `any` node. No separate armor scripting language is required.
+
+Equipment-slot observation is demand-driven and direct. Rules that only inspect armor or the off hand must not trigger a full inventory index or nested-container scan.
+
+Optional future predicates may inspect item components, but version 1 should not expose arbitrary component expressions.
 
 ### 6.3 Player inventory
 
@@ -534,6 +553,8 @@ Test:
 - dimension change;
 - opening/closing screens;
 - keybinding rebinding reflected in hint output;
+- off-hand item changes reflected in rule evaluation;
+- armor equip, swap, and removal reflected independently for head, chest, legs, and feet;
 - HUD rendering on representative GUI scales;
 - config reload while running;
 - missing optional mod behavior.
@@ -618,7 +639,8 @@ M2: keybinding catalog and static HUD.
 - diagnostics.
 
 M3: rule engine and core context.
-- held items.
+- main-hand and off-hand items.
+- equipped armor slots: head, chest, legs, and feet.
 - dimension.
 - active screen.
 - handled-menu ID where available.
