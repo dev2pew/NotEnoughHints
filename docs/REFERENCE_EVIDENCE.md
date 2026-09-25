@@ -163,7 +163,9 @@ Fabric documentation confirms:
 - Fabric provides `HudElementRegistry` for layered HUD elements;
 - HUD matrix handling changed starting with Minecraft 1.21.8;
 - Fabric Loader JUnit and client GameTests are available for automated testing;
-- persistent `ItemStack` state uses the data-component system from Minecraft 1.20.5 onward.
+- persistent `ItemStack` state uses the data-component system from Minecraft 1.20.5 onward;
+- on obfuscated pre-26.1 Minecraft releases, Fabric Loader remaps production Minecraft classes to the intermediary namespace;
+- `MappingResolver#unmapClassName("intermediary", runtimeName)` provides a runtime-independent intermediary class selector when intermediary mappings are available.
 
 These facts constrain NEH's initial 1.21.8 implementation and test plan.
 

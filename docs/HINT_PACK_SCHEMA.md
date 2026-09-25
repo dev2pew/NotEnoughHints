@@ -170,6 +170,14 @@ Exact screen class:
 {"type": "screen_class", "class": "com.example.client.SomeScreen"}
 ```
 
+The selector is a binary class name. Mod-owned screen classes use their normal binary names. Minecraft classes must use the stable Fabric intermediary name because Minecraft 1.21.8 class names differ between the development namespace and production. For example, the 1.21.8 options screen is:
+
+```json
+{"type": "screen_class", "class": "net.minecraft.class_429"}
+```
+
+The debug HUD reports the canonical screen selector, so pack authors do not need to infer an intermediary class ID from the development class name.
+
 Registered handled-menu ID:
 
 ```json

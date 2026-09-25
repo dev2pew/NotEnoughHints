@@ -75,7 +75,7 @@ Candidate fields:
 - world present;
 - player present;
 - current dimension key;
-- active Screen class name;
+- active Screen class selector, canonicalized to Fabric's intermediary namespace for remapped Minecraft classes;
 - active handled-menu type identifier when known;
 - main-hand ItemStack identifier;
 - off-hand ItemStack identifier;
@@ -121,6 +121,8 @@ Condition nodes:
 No arbitrary script expressions in version 1.
 
 Rules evaluate against one ClientContext snapshot. A condition cannot mutate game state.
+
+For `screen_class`, Minecraft classes use Fabric's intermediary binary name as the stable selector because pre-26.1 production clients run remapped Minecraft classes in the intermediary namespace. Non-Minecraft mod screen classes are unchanged by that remapping and retain their ordinary binary names. Diagnostics expose the canonical selector currently observed by NEH.
 
 Conflict resolution:
 
