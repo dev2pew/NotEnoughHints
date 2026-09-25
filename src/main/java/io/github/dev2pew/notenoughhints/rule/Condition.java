@@ -46,11 +46,6 @@ public sealed interface Condition {
         public int inventorySelectorCount() {
             return conditions.stream().mapToInt(Condition::inventorySelectorCount).sum();
         }
-
-        @Override
-        public int inventorySelectorCount() {
-            return conditions.stream().mapToInt(Condition::inventorySelectorCount).sum();
-        }
     }
 
     record Any(List<Condition> conditions) implements Condition {
@@ -71,6 +66,11 @@ public sealed interface Condition {
         @Override
         public boolean requiresNestedInventory() {
             return conditions.stream().anyMatch(Condition::requiresNestedInventory);
+        }
+
+        @Override
+        public int inventorySelectorCount() {
+            return conditions.stream().mapToInt(Condition::inventorySelectorCount).sum();
         }
     }
 
