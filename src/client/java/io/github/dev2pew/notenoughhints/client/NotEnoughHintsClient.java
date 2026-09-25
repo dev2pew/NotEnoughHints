@@ -20,6 +20,7 @@ import io.github.dev2pew.notenoughhints.client.hud.HintRenderer;
 import io.github.dev2pew.notenoughhints.client.keybind.KeyBindingCatalog;
 import io.github.dev2pew.notenoughhints.context.ClientContext;
 import io.github.dev2pew.notenoughhints.hud.HintDefinition;
+import io.github.dev2pew.notenoughhints.hud.HintDescription;
 import io.github.dev2pew.notenoughhints.hud.HintFlow;
 import io.github.dev2pew.notenoughhints.hud.HintGroupDefinition;
 import io.github.dev2pew.notenoughhints.hud.HudAnchor;
@@ -45,7 +46,11 @@ public final class NotEnoughHintsClient implements ClientModInitializer {
                         6,
                         List.of(
                                 new HintDefinition(
-                                        "inventory", "key.inventory", "", true, true)));
+                                        "inventory",
+                                        "key.inventory",
+                                        new HintDescription.Default(),
+                                        true,
+                                        true)));
 
         HintController hintController =
                 new HintController(

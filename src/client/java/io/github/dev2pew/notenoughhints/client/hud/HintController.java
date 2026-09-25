@@ -15,6 +15,7 @@ import io.github.dev2pew.notenoughhints.client.keybind.KeyBindingDescriptor;
 import io.github.dev2pew.notenoughhints.config.NehConfig;
 import io.github.dev2pew.notenoughhints.context.ClientContext;
 import io.github.dev2pew.notenoughhints.hud.HintDefinition;
+import io.github.dev2pew.notenoughhints.hud.HintDescription;
 import io.github.dev2pew.notenoughhints.hud.HintGroupDefinition;
 import io.github.dev2pew.notenoughhints.rule.Rule;
 import io.github.dev2pew.notenoughhints.rule.RuleEvaluationResult;
@@ -99,14 +100,17 @@ public final class HintController {
         boolean showBinding = config.showBindingLabels() && definition.showBinding();
         String bindingText = showBinding ? binding.boundKeyText() : "";
         String description =
-                definition.descriptionTranslationKey().isBlank()
-                        ? binding.descriptionText()
-                        : Component.translatable(definition.descriptionTranslationKey()).getString();
+                switch (definition.description()) {
+                    case HintDescription.Default ignored -> binding.descriptionText();
+                    case HintDescription.Literal literal -> literal.text();
+                    case HintDescription.Translation translation -> {
+                        String translated = Component.translatable(translation.key()).getString();
+                        yield translated.equals(translation.key())
+                                ? binding.descriptionText()
+                                : translated;
+                    }
+                };
 
-        if (description.equals(definition.descriptionTranslationKey())
-                && !definition.descriptionTranslationKey().isBlank()) {
-            description = binding.descriptionText();
-        }
         if (description.isBlank() || description.equals(definition.bindingId())) {
             description = Component.translatable("text.notenoughhints.unnamed_action").getString();
         }

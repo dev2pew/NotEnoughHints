@@ -5,13 +5,13 @@ import java.util.Objects;
 public record HintDefinition(
         String id,
         String bindingId,
-        String descriptionTranslationKey,
+        HintDescription description,
         boolean showBinding,
         boolean visibleByDefault) {
     public HintDefinition {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(bindingId, "bindingId");
-        Objects.requireNonNull(descriptionTranslationKey, "descriptionTranslationKey");
+        Objects.requireNonNull(description, "description");
 
         if (id.isBlank()) {
             throw new IllegalArgumentException("Hint id must not be blank");
