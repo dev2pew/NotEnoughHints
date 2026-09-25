@@ -5,7 +5,9 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 import com.google.gson.Gson;
@@ -70,14 +72,46 @@ public final class NehConfigManager {
         }
     }
 
-    private void writeDefaults() {
+    public boolean save(NehConfig next) {
+        List<String> errors = next.validate();
+        if (!errors.isEmpty()) {
+            LOGGER.error("Refusing to save invalid NEH config: {}", String.join("; ", errors));
+            return false;
+        }
+
+        Path temporaryFile = configFile.resolveSibling(configFile.getFileName() + ".tmp");
         try {
             Files.createDirectories(configFile.getParent());
-            try (Writer writer = Files.newBufferedWriter(configFile, StandardCharsets.UTF_8)) {
-                GSON.toJson(current, writer);
+            try (Writer writer = Files.newBufferedWriter(temporaryFile, StandardCharsets.UTF_8)) {
+                GSON.toJson(next, writer);
             }
+
+            try {
+                Files.move(
+                        temporaryFile,
+                        configFile,
+                        StandardCopyOption.ATOMIC_MOVE,
+                        StandardCopyOption.REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException exception) {
+                Files.move(temporaryFile, configFile, StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            current = next;
+            return true;
         } catch (IOException exception) {
-            LOGGER.error("Failed to create default NEH config {}", configFile, exception);
+            LOGGER.error("Failed to save NEH config {}", configFile, exception);
+            try {
+                Files.deleteIfExists(temporaryFile);
+            } catch (IOException cleanupException) {
+                LOGGER.debug("Failed to remove temporary NEH config {}", temporaryFile, cleanupException);
+            }
+            return false;
+        }
+    }
+
+    private void writeDefaults() {
+        if (!save(current)) {
+            LOGGER.error("Failed to create default NEH config {}", configFile);
         }
     }
 }

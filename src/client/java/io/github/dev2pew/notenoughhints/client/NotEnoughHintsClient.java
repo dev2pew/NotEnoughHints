@@ -25,10 +25,18 @@ import io.github.dev2pew.notenoughhints.rule.RuleEvaluator;
 
 public final class NotEnoughHintsClient implements ClientModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger(NotEnoughHints.MOD_ID);
+    private static NehConfigManager configManager;
+
+    public static NehConfigManager configManager() {
+        if (configManager == null) {
+            throw new IllegalStateException("NEH client has not initialized yet");
+        }
+        return configManager;
+    }
 
     @Override
     public void onInitializeClient() {
-        NehConfigManager configManager = new NehConfigManager();
+        configManager = new NehConfigManager();
         configManager.load();
 
         HintPackManager hintPackManager = new HintPackManager();

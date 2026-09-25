@@ -1,3 +1,15 @@
 {
-  "text.notenoughhints.unnamed_action": "Unnamed action"
+  "text.notenoughhints.unnamed_action": "Unnamed action",
+  "screen.notenoughhints.config": "Not Enough Hints",
+  "category.notenoughhints.general": "General",
+  "option.notenoughhints.enabled": "Enabled",
+  "option.notenoughhints.enabled.description": "Enable or disable all NEH hint groups.",
+  "option.notenoughhints.debug": "Debug HUD",
+  "option.notenoughhints.debug.description": "Show the local NEH context and integration diagnostics.",
+  "option.notenoughhints.show_binding_labels": "Show binding labels",
+  "option.notenoughhints.show_binding_labels.description": "Show the player's current bound key inside each key glyph.",
+  "option.notenoughhints.scale": "HUD scale",
+  "option.notenoughhints.scale.description": "Scale NEH hint groups without changing Minecraft's global GUI scale.",
+  "option.notenoughhints.opacity": "HUD opacity",
+  "option.notenoughhints.opacity.description": "Set the opacity used by NEH hint glyphs and descriptions."
 }
