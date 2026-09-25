@@ -6,7 +6,7 @@ NEH is intended for heavily customized modpacks where players need temporary, co
 
 ## Status
 
-Development is active on the `dev` branch. Automated development builds are prereleases, not stable releases.
+Development is active on the `dev` branch. Automated nightly builds are prereleases, not stable releases.
 
 Tested Fabric targets: Minecraft Java Edition 1.21.7 and 1.21.8. Both targets must pass the normal build/test job and the production client GameTest before publication.
 
@@ -31,8 +31,8 @@ Source projects that should be supplied or inspected before implementation are t
 
 ## Repository policy
 
-`main` is the canonical branch. The `dev` branch carries integration work and automatic prereleases.
+`dev` is the primary integration branch. Temporary feature or compatibility branches should merge back into `dev` after their checks pass. `main` is reserved for stable-release promotion.
 
-Development releases are built from the exact `dev` commit after both supported Minecraft targets pass their production client tests. Stable GitHub releases remain a manual workflow from `main`.
+Nightly releases are built from the exact `dev` commit after both supported Minecraft targets pass their production client tests. Stable GitHub releases remain a manual workflow from `main`.
 
 No license has been selected for NEH yet. Reference-source licenses must be checked before code is copied or adapted.
