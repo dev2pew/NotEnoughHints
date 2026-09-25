@@ -39,28 +39,39 @@ public final class NestedInventoryAdapterRegistry {
         Objects.requireNonNull(stack, "stack");
         Objects.requireNonNull(consumer, "consumer");
 
-        for (Entry entry : entries.values()) {
-            if (!entry.enabled) {
-                continue;
-            }
+        for (String id : entries.keySet()) {
+            runGuarded(
+                    id,
+                    () -> {
+                        Entry entry = entries.get(id);
+                        if (!entry.adapter.supports(stack)) {
+                            return;
+                        }
 
-            try {
-                if (!entry.adapter.supports(stack)) {
-                    continue;
-                }
+                        for (ItemStack nestedStack : entry.adapter.contents(stack)) {
+                            if (nestedStack != null) {
+                                consumer.accept(nestedStack);
+                            }
+                        }
+                    });
+        }
+    }
 
-                for (ItemStack nestedStack : entry.adapter.contents(stack)) {
-                    if (nestedStack != null) {
-                        consumer.accept(nestedStack);
-                    }
-                }
-            } catch (RuntimeException | LinkageError exception) {
-                entry.enabled = false;
-                LOGGER.error(
-                        "Disabled nested inventory adapter {} after an exception",
-                        entry.adapter.id(),
-                        exception);
-            }
+    void runGuarded(String id, Runnable operation) {
+        Objects.requireNonNull(operation, "operation");
+        Entry entry = entries.get(id);
+        if (entry == null || !entry.enabled) {
+            return;
+        }
+
+        try {
+            operation.run();
+        } catch (RuntimeException | LinkageError exception) {
+            entry.enabled = false;
+            LOGGER.error(
+                    "Disabled nested inventory adapter {} after an exception",
+                    entry.adapter.id(),
+                    exception);
         }
     }
 

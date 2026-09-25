@@ -16,32 +16,15 @@ class NestedInventoryAdapterRegistryTest {
         NestedInventoryAdapterRegistry registry = new NestedInventoryAdapterRegistry();
         AtomicInteger calls = new AtomicInteger();
 
-        registry.register(
-                new NestedInventoryAdapter() {
-                    @Override
-                    public String id() {
-                        return "test:broken";
-                    }
+        registry.register(emptyAdapter("test:broken"));
 
-                    @Override
-                    public String targetModId() {
-                        return "testmod";
-                    }
-
-                    @Override
-                    public boolean supports(ItemStack stack) {
-                        return true;
-                    }
-
-                    @Override
-                    public Iterable<ItemStack> contents(ItemStack stack) {
-                        calls.incrementAndGet();
-                        throw new IllegalStateException("boom");
-                    }
+        registry.runGuarded(
+                "test:broken",
+                () -> {
+                    calls.incrementAndGet();
+                    throw new IllegalStateException("boom");
                 });
-
-        registry.visitContents(ItemStack.EMPTY, ignored -> {});
-        registry.visitContents(ItemStack.EMPTY, ignored -> {});
+        registry.runGuarded("test:broken", calls::incrementAndGet);
 
         assertEquals(1, calls.get());
         assertEquals(List.of(), registry.activeAdapterIds());
