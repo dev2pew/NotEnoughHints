@@ -6,15 +6,22 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 
 import io.github.dev2pew.notenoughhints.client.config.NehConfigManager;
+import io.github.dev2pew.notenoughhints.client.keybind.KeyBindingCatalog;
+import io.github.dev2pew.notenoughhints.client.keybind.KeyBindingDescriptor;
 import io.github.dev2pew.notenoughhints.config.NehConfig;
 
 public final class PrototypeHintController {
+    private static final String PROTOTYPE_BINDING_ID = "key.inventory";
+
     private final NehConfigManager configManager;
+    private final KeyBindingCatalog keyBindingCatalog;
     private final AtomicReference<PrototypeHintRenderState> renderState =
             new AtomicReference<>(PrototypeHintRenderState.hidden());
 
-    public PrototypeHintController(NehConfigManager configManager) {
+    public PrototypeHintController(
+            NehConfigManager configManager, KeyBindingCatalog keyBindingCatalog) {
         this.configManager = configManager;
+        this.keyBindingCatalog = keyBindingCatalog;
     }
 
     public void tick(Minecraft client) {
@@ -24,15 +31,26 @@ public final class PrototypeHintController {
             return;
         }
 
-        String bindingText =
-                config.showBindingLabels()
-                        ? client.options.keyInventory.getTranslatedKeyMessage().getString()
-                        : "";
-        String description = Component.translatable("key.inventory").getString();
+        KeyBindingDescriptor binding = keyBindingCatalog.find(PROTOTYPE_BINDING_ID).orElse(null);
+        if (binding == null) {
+            renderState.set(
+                    new PrototypeHintRenderState(
+                            true,
+                            "",
+                            Component.translatable("text.notenoughhints.unnamed_action").getString(),
+                            config.scale(),
+                            config.opacity()));
+            return;
+        }
 
+        String bindingText = config.showBindingLabels() ? binding.boundKeyText() : "";
         renderState.set(
                 new PrototypeHintRenderState(
-                        true, bindingText, description, config.scale(), config.opacity()));
+                        true,
+                        bindingText,
+                        binding.descriptionText(),
+                        config.scale(),
+                        config.opacity()));
     }
 
     public PrototypeHintRenderState renderState() {
