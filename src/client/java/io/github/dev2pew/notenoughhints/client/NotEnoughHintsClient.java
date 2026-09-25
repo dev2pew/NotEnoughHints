@@ -11,9 +11,12 @@ import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import io.github.dev2pew.notenoughhints.NotEnoughHints;
 import io.github.dev2pew.notenoughhints.client.config.NehConfigManager;
 import io.github.dev2pew.notenoughhints.client.context.ClientContextCollector;
+import io.github.dev2pew.notenoughhints.client.debug.DiagnosticsController;
+import io.github.dev2pew.notenoughhints.client.debug.DiagnosticsRenderer;
 import io.github.dev2pew.notenoughhints.client.hud.PrototypeHintController;
 import io.github.dev2pew.notenoughhints.client.hud.PrototypeHintRenderer;
 import io.github.dev2pew.notenoughhints.client.keybind.KeyBindingCatalog;
+import io.github.dev2pew.notenoughhints.context.ClientContext;
 
 public final class NotEnoughHintsClient implements ClientModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger(NotEnoughHints.MOD_ID);
@@ -30,6 +33,9 @@ public final class NotEnoughHintsClient implements ClientModInitializer {
                 new PrototypeHintController(configManager, keyBindingCatalog);
         PrototypeHintRenderer prototypeRenderer = new PrototypeHintRenderer(prototypeController);
 
+        DiagnosticsController diagnosticsController = new DiagnosticsController(configManager);
+        DiagnosticsRenderer diagnosticsRenderer = new DiagnosticsRenderer(diagnosticsController);
+
         ClientTickEvents.START_CLIENT_TICK.register(
                 client -> {
                     if (keyBindingCatalog.size() == 0) {
@@ -38,10 +44,18 @@ public final class NotEnoughHintsClient implements ClientModInitializer {
                     }
                 });
         ClientTickEvents.END_CLIENT_TICK.register(
-                client -> prototypeController.update(contextCollector.collect(client)));
+                client -> {
+                    ClientContext context = contextCollector.collect(client);
+                    prototypeController.update(context);
+                    diagnosticsController.update(context);
+                });
 
         HudElementRegistry.attachElementBefore(
                 VanillaHudElements.CHAT, NotEnoughHints.id("hints"), prototypeRenderer::render);
+        HudElementRegistry.attachElementBefore(
+                VanillaHudElements.CHAT,
+                NotEnoughHints.id("diagnostics"),
+                diagnosticsRenderer::render);
 
         LOGGER.info("Not Enough Hints development prototype initialized");
     }

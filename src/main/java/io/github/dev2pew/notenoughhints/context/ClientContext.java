@@ -1,6 +1,7 @@
 package io.github.dev2pew.notenoughhints.context;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 public record ClientContext(
@@ -21,8 +22,8 @@ public record ClientContext(
         mainHandItemId = nonNull(mainHandItemId);
         offHandItemId = nonNull(offHandItemId);
         equipmentItems = Map.copyOf(equipmentItems);
-        loadedModIds = Set.copyOf(loadedModIds);
-        keyBindingIds = Set.copyOf(keyBindingIds);
+        Objects.requireNonNull(loadedModIds, "loadedModIds");
+        Objects.requireNonNull(keyBindingIds, "keyBindingIds");
     }
 
     public String equipmentItem(EquipmentSlotKey slot) {
