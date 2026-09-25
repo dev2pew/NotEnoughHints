@@ -2,7 +2,9 @@ package io.github.dev2pew.notenoughhints.client.hud;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import net.minecraft.network.chat.Component;
 
@@ -13,21 +15,34 @@ import io.github.dev2pew.notenoughhints.config.NehConfig;
 import io.github.dev2pew.notenoughhints.context.ClientContext;
 import io.github.dev2pew.notenoughhints.hud.HintDefinition;
 import io.github.dev2pew.notenoughhints.hud.HintGroupDefinition;
+import io.github.dev2pew.notenoughhints.rule.Rule;
+import io.github.dev2pew.notenoughhints.rule.RuleEvaluationResult;
+import io.github.dev2pew.notenoughhints.rule.RuleEvaluator;
 
 public final class HintController {
     private final NehConfigManager configManager;
     private final KeyBindingCatalog keyBindingCatalog;
     private final HintGroupDefinition groupDefinition;
+    private final List<Rule> rules;
+    private final Set<String> defaultVisibleHintIds;
+    private final RuleEvaluator ruleEvaluator = new RuleEvaluator();
     private final AtomicReference<HintGroupRenderState> renderState =
             new AtomicReference<>(HintGroupRenderState.hidden());
 
     public HintController(
             NehConfigManager configManager,
             KeyBindingCatalog keyBindingCatalog,
-            HintGroupDefinition groupDefinition) {
+            HintGroupDefinition groupDefinition,
+            List<Rule> rules) {
         this.configManager = configManager;
         this.keyBindingCatalog = keyBindingCatalog;
         this.groupDefinition = groupDefinition;
+        this.rules = List.copyOf(rules);
+        this.defaultVisibleHintIds =
+                groupDefinition.hints().stream()
+                        .filter(HintDefinition::visibleByDefault)
+                        .map(HintDefinition::id)
+                        .collect(Collectors.toUnmodifiableSet());
     }
 
     public void update(ClientContext context) {
@@ -37,8 +52,14 @@ public final class HintController {
             return;
         }
 
+        RuleEvaluationResult evaluation =
+                ruleEvaluator.evaluate(context, rules, defaultVisibleHintIds);
+
         List<ResolvedHint> resolved = new ArrayList<>();
         for (HintDefinition definition : groupDefinition.hints()) {
+            if (!evaluation.visibleHintIds().contains(definition.id())) {
+                continue;
+            }
             resolve(definition, config).ifPresent(resolved::add);
         }
 

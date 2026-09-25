@@ -72,14 +72,64 @@ class RuleEvaluatorTest {
     void returnsOnlyEnabledMatchesInPriorityOrder() {
         List<Rule> rules =
                 List.of(
-                        new Rule("later", true, 20, new Condition.WorldPresent()),
-                        new Rule("disabled", false, 0, new Condition.WorldPresent()),
-                        new Rule("first", true, 10, new Condition.KeyBindingExists("key.inventory")),
-                        new Rule("miss", true, 5, new Condition.Dimension("minecraft:the_end")));
+                        new Rule("later", true, 20, new Condition.WorldPresent(), List.of()),
+                        new Rule("disabled", false, 0, new Condition.WorldPresent(), List.of()),
+                        new Rule(
+                                "first",
+                                true,
+                                10,
+                                new Condition.KeyBindingExists("key.inventory"),
+                                List.of()),
+                        new Rule(
+                                "miss",
+                                true,
+                                5,
+                                new Condition.Dimension("minecraft:the_end"),
+                                List.of()));
 
         List<String> ids =
                 new RuleEvaluator().matchingRules(context, rules).stream().map(Rule::id).toList();
 
         assertEquals(List.of("first", "later"), ids);
+    }
+
+    @Test
+    void laterMatchingRuleCanExplicitlyOverrideHintVisibility() {
+        List<Rule> rules =
+                List.of(
+                        new Rule(
+                                "show",
+                                true,
+                                10,
+                                new Condition.WorldPresent(),
+                                List.of(new RuleAction.ShowHint("contextual"))),
+                        new Rule(
+                                "hide-in-nether",
+                                true,
+                                20,
+                                new Condition.Dimension("minecraft:the_nether"),
+                                List.of(new RuleAction.HideHint("contextual"))));
+
+        RuleEvaluationResult result =
+                new RuleEvaluator().evaluate(context, rules, Set.of("always"));
+
+        assertEquals(Set.of("always"), result.visibleHintIds());
+        assertEquals(List.of("show", "hide-in-nether"), result.matchedRuleIds());
+    }
+
+    @Test
+    void showActionCanEnableHiddenByDefaultHint() {
+        Rule rule =
+                new Rule(
+                        "show-shield",
+                        true,
+                        10,
+                        new Condition.OffHandItem("minecraft:shield"),
+                        List.of(new RuleAction.ShowHint("shield")));
+
+        RuleEvaluationResult result =
+                new RuleEvaluator().evaluate(context, List.of(rule), Set.of());
+
+        assertEquals(Set.of("shield"), result.visibleHintIds());
     }
 }

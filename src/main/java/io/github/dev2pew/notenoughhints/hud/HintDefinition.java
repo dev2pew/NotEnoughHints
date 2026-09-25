@@ -3,7 +3,11 @@ package io.github.dev2pew.notenoughhints.hud;
 import java.util.Objects;
 
 public record HintDefinition(
-        String id, String bindingId, String descriptionTranslationKey, boolean showBinding) {
+        String id,
+        String bindingId,
+        String descriptionTranslationKey,
+        boolean showBinding,
+        boolean visibleByDefault) {
     public HintDefinition {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(bindingId, "bindingId");

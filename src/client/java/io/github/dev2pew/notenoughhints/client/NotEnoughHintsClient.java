@@ -45,10 +45,10 @@ public final class NotEnoughHintsClient implements ClientModInitializer {
                         6,
                         List.of(
                                 new HintDefinition(
-                                        "inventory", "key.inventory", "", true)));
+                                        "inventory", "key.inventory", "", true, true)));
 
         HintController hintController =
-                new HintController(configManager, keyBindingCatalog, developmentGroup);
+                new HintController(configManager, keyBindingCatalog, developmentGroup, List.of());
         HintRenderer hintRenderer = new HintRenderer(hintController);
 
         DiagnosticsController diagnosticsController = new DiagnosticsController(configManager);
