@@ -45,3 +45,12 @@ Stable releases are manually dispatched from main. The dev branch may receive au
 ## ADR-010: Missing references fail locally
 
 A removed mod, item, keybinding, screen, or dimension invalidates only the affected selector/rule. NEH preserves the configuration and reports the unresolved reference.
+
+
+## ADR-011: Equipment state is first-class context
+
+NEH treats player equipment as direct client context rather than as a generic inventory search.
+
+Version 1 must expose the current main hand, off hand, head, chest, legs, and feet ItemStacks to the rule engine when configured rules require them. The typed `equipment_slot_item` predicate checks one exact slot.
+
+Armor checks therefore distinguish equipped items from matching items merely carried in the player's inventory. Equipment-only rules must not trigger full inventory or nested-container scans.
