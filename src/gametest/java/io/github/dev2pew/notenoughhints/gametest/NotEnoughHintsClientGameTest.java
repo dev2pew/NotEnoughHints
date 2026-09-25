@@ -208,6 +208,22 @@ public final class NotEnoughHintsClientGameTest implements FabricClientGameTest 
 
         context.runOnClient(
                 client -> {
+                    inventory.setKey(InputConstants.UNKNOWN);
+                    KeyMapping.resetMapping();
+                });
+
+        context.waitFor(
+                client -> {
+                    ResolvedHint hint = findHint(INVENTORY_DESCRIPTION);
+                    return hint != null
+                            && hint.bindingText().equals("Unbound")
+                            && NotEnoughHintsClient.hintDiagnostics()
+                                    .unboundBindingIds()
+                                    .contains("key.inventory");
+                });
+
+        context.runOnClient(
+                client -> {
                     inventory.setKey(inventory.getDefaultKey());
                     KeyMapping.resetMapping();
                 });

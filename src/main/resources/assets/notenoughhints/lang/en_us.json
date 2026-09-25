@@ -24,5 +24,6 @@
   "option.notenoughhints.group_offset_x": "Horizontal offset",
   "option.notenoughhints.group_offset_y": "Vertical offset",
   "option.notenoughhints.open_hint_pack_folder": "Open hint pack folder",
-  "option.notenoughhints.open_hint_pack_folder.description": "Open config/not-enough-hints/hints so JSON hint packs can be added or edited."
+  "option.notenoughhints.open_hint_pack_folder.description": "Open config/not-enough-hints/hints so JSON hint packs can be added or edited.",
+  "text.notenoughhints.unbound": "Unbound"
 }

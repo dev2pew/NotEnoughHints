@@ -262,6 +262,18 @@ public final class NehConfigScreen {
             }
         }
 
+        Set<String> unboundBindings =
+                NotEnoughHintsClient.hintDiagnostics().unboundBindingIds();
+        if (unboundBindings.isEmpty()) {
+            builder.option(LabelOption.create(Component.literal("No unbound keybinding references")));
+        } else {
+            for (String bindingId : unboundBindings.stream().sorted().toList()) {
+                builder.option(
+                        LabelOption.create(
+                                Component.literal("Unbound keybinding: " + bindingId)));
+            }
+        }
+
         return builder.option(
                         ButtonOption.createBuilder()
                                 .name(

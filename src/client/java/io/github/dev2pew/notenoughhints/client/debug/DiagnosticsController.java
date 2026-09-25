@@ -49,6 +49,7 @@ public final class DiagnosticsController {
                         "keybindings: " + context.keyBindingIds().size(),
                         "active_rules: " + hintDiagnostics.activeRuleIds(),
                         "unresolved_bindings: " + hintDiagnostics.unresolvedBindingIds(),
+                        "unbound_bindings: " + hintDiagnostics.unboundBindingIds(),
                         "visible_hints: " + hintDiagnostics.visibleHintCount(),
                         "context_refresh_ns: " + tickMetrics.contextRefreshNanos(),
                         "rule_eval_ns: " + hintDiagnostics.ruleEvaluationNanos(),

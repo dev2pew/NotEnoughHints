@@ -6,6 +6,7 @@ import java.util.Set;
 public record HintDiagnostics(
         List<String> activeRuleIds,
         Set<String> unresolvedBindingIds,
+        Set<String> unboundBindingIds,
         int visibleHintCount,
         long ruleEvaluationNanos,
         int evaluatedRuleCount,
@@ -13,6 +14,7 @@ public record HintDiagnostics(
     public HintDiagnostics {
         activeRuleIds = List.copyOf(activeRuleIds);
         unresolvedBindingIds = Set.copyOf(unresolvedBindingIds);
+        unboundBindingIds = Set.copyOf(unboundBindingIds);
 
         if (visibleHintCount < 0
                 || ruleEvaluationNanos < 0
@@ -23,6 +25,6 @@ public record HintDiagnostics(
     }
 
     public static HintDiagnostics empty() {
-        return new HintDiagnostics(List.of(), Set.of(), 0, 0L, 0, 0);
+        return new HintDiagnostics(List.of(), Set.of(), Set.of(), 0, 0L, 0, 0);
     }
 }

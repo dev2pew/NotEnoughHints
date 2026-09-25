@@ -99,7 +99,7 @@ A chord is rendered as a glyph cluster. Each token receives its own keycap-like 
 
 The glyph frame grows to the measured text width. The renderer must not truncate a functional key combination merely to keep a fixed icon width.
 
-If a key is unbound, the hint remains valid. When binding visibility is enabled, the glyph displays an explicit unbound state and diagnostics identify the unresolved or unbound selector.
+If a key is unbound, the hint remains valid. When binding visibility is enabled, the glyph displays the localized `Unbound` state. Diagnostics and the config screen list the stable selector separately from unresolved selectors.
 
 ## 5. Description resolution
 

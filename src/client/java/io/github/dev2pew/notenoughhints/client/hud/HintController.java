@@ -65,10 +65,19 @@ public final class HintController {
         NehConfig config = configManager.current();
         DefinitionState currentDefinitions = definitions;
         Set<String> unresolvedBindingIds = unresolvedBindingIds(currentDefinitions);
+        Set<String> unboundBindingIds = unboundBindingIds(currentDefinitions);
 
         if (!config.enabled() || !context.worldPresent()) {
             renderStates.set(List.of());
-            diagnostics.set(new HintDiagnostics(List.of(), unresolvedBindingIds, 0, 0L, 0, 0));
+            diagnostics.set(
+                    new HintDiagnostics(
+                            List.of(),
+                            unresolvedBindingIds,
+                            unboundBindingIds,
+                            0,
+                            0L,
+                            0,
+                            0));
             return;
         }
 
@@ -122,6 +131,7 @@ public final class HintController {
                 new HintDiagnostics(
                         evaluation.matchedRuleIds(),
                         unresolvedBindingIds,
+                        unboundBindingIds,
                         visibleHintCount,
                         ruleEvaluationNanos,
                         evaluation.evaluatedRuleCount(),
@@ -154,6 +164,18 @@ public final class HintController {
         return unresolved;
     }
 
+    private Set<String> unboundBindingIds(DefinitionState currentDefinitions) {
+        return currentDefinitions.groups().stream()
+                .flatMap(group -> group.hints().stream())
+                .map(HintDefinition::bindingId)
+                .filter(
+                        bindingId ->
+                                keyBindingCatalog.find(bindingId)
+                                        .map(KeyBindingDescriptor::unbound)
+                                        .orElse(false))
+                .collect(Collectors.toUnmodifiableSet());
+    }
+
     private java.util.Optional<ResolvedHint> resolve(HintDefinition definition, NehConfig config) {
         KeyBindingDescriptor binding = keyBindingCatalog.find(definition.bindingId()).orElse(null);
         if (binding == null) {
@@ -161,7 +183,12 @@ public final class HintController {
         }
 
         boolean showBinding = config.showBindingLabels() && definition.showBinding();
-        String bindingText = showBinding ? binding.boundKeyText() : "";
+        String bindingText =
+                showBinding
+                        ? binding.unbound()
+                                ? Component.translatable("text.notenoughhints.unbound").getString()
+                                : binding.boundKeyText()
+                        : "";
         String description =
                 switch (definition.description()) {
                     case HintDescription.Default ignored -> binding.descriptionText();
