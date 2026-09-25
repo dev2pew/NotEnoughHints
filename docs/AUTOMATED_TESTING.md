@@ -27,8 +27,7 @@ The production client suite also installs a temporary hint pack and verifies run
 - off-hand and each armor slot activate and deactivate independent rules;
 - an inventory rule added by runtime hint-pack reload observes newly acquired items;
 - an overworld-to-Nether-to-overworld transition updates the dimension rule;
+- opening and closing the vanilla Options screen updates a `screen_class` rule using the stable Fabric intermediary selector `net.minecraft.class_429`;
 - test-owned config and hint-pack files are restored or removed before shutdown.
 
-Screen transitions remain pending because the current `screen_class` condition records a runtime binary class name. A stable namespace contract for remapped vanilla screen classes must be defined before a production test can assert creator-facing screen selectors.
-
-Representative Minecraft GUI-scale screenshots also remain pending.
+Representative Minecraft GUI-scale screenshots remain pending.

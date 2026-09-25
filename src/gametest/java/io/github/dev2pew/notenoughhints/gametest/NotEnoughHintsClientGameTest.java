@@ -13,6 +13,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import org.lwjgl.glfw.GLFW;
 
 import net.minecraft.client.KeyMapping;
+import net.minecraft.client.gui.screens.options.OptionsScreen;
 
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
@@ -65,6 +66,15 @@ public final class NotEnoughHintsClientGameTest implements FabricClientGameTest 
                   "id": "gametest-nether",
                   "priority": 10,
                   "when": {"type": "dimension", "id": "minecraft:the_nether"},
+                  "actions": [{"type": "show_hint", "hint": "gametest-context-hint"}]
+                },
+                {
+                  "id": "gametest-options-screen",
+                  "priority": 15,
+                  "when": {
+                    "type": "screen_class",
+                    "class": "net.minecraft.class_429"
+                  },
                   "actions": [{"type": "show_hint", "hint": "gametest-context-hint"}]
                 },
                 {
@@ -152,6 +162,7 @@ public final class NotEnoughHintsClientGameTest implements FabricClientGameTest 
 
                 verifyLiveKeyRebinding(context);
                 verifyGroupPlacementOverride(context, originalConfig);
+                verifyScreenRule(context);
                 verifyItemContextRules(singleplayer, context);
                 verifyDimensionRule(singleplayer, context);
 
@@ -239,6 +250,17 @@ public final class NotEnoughHintsClientGameTest implements FabricClientGameTest 
                             && state.offsetY() == 18
                             && Float.compare(state.scale(), 1.25F) == 0;
                 });
+    }
+
+    private static void verifyScreenRule(ClientGameTestContext context) {
+        context.runOnClient(
+                client -> client.setScreen(new OptionsScreen(client.screen, client.options)));
+        context.waitFor(client -> client.screen instanceof OptionsScreen);
+        waitForRule(context, "gametest-options-screen", true);
+
+        context.runOnClient(client -> client.setScreen(null));
+        context.waitFor(client -> client.screen == null);
+        waitForRule(context, "gametest-options-screen", false);
     }
 
     private static void verifyItemContextRules(

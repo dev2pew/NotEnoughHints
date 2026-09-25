@@ -57,7 +57,10 @@ public final class ClientContextCollector {
         boolean worldPresent = client.level != null;
         String dimensionId =
                 client.level == null ? "" : client.level.dimension().location().toString();
-        String screenClassName = client.screen == null ? "" : client.screen.getClass().getName();
+        String screenClassName =
+                client.screen == null
+                        ? ""
+                        : ScreenClassSelector.canonicalize(client.screen.getClass());
         String handledMenuId = handledMenuId(client);
 
         if (client.player == null) {
