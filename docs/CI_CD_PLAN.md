@@ -1,12 +1,12 @@
 # CI/CD Plan
 
-NEH uses two protected release paths: automatic development prereleases from `dev`, and manual stable releases from `main`.
+NEH uses two release paths: automatic nightly prereleases from `dev`, and manual stable releases from `main`.
 
 ## Branches
 
-- `main`: canonical branch and only source of stable releases.
-- `dev`: integration branch and source of automatic development prereleases.
-- feature or compatibility branches: optional; CI runs before merge.
+- `dev`: primary integration branch and source of automatic nightly prereleases.
+- `main`: stable-release branch.
+- feature or compatibility branches: temporary or task-specific; CI runs before they are merged back into `dev`.
 
 ## Supported build matrix
 
@@ -35,11 +35,11 @@ Every push and pull request runs:
 
 CI does not publish a GitHub release.
 
-## Development releases
+## Nightly releases
 
-Pushes to `dev` build and production-test both supported Minecraft targets before replacing the moving `dev` prerelease.
+Pushes to `dev` build and production-test both supported Minecraft targets before replacing the moving `nightly` prerelease.
 
-The release contains one target-specific JAR for Minecraft 1.21.8 and one for Minecraft 1.21.7. The release tag points at the exact commit that produced those artifacts. A failed build or production client test prevents publication.
+The release contains one target-specific JAR for Minecraft 1.21.8 and one for Minecraft 1.21.7. The `nightly` tag points at the exact commit that produced those artifacts. A failed build or production client test prevents publication.
 
 ## Stable releases
 
