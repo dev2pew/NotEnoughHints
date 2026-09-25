@@ -32,27 +32,63 @@ jobs:
         with:
           gradle-version: "9.5.1"
 
-      - name: Check formatting and build
-        run: gradle spotlessCheck clean build --no-daemon --stacktrace
+      - name: Check formatting
+        run: gradle spotlessCheck --no-daemon --stacktrace
 
-      - name: Run production client game test
-        run: gradle runProductionClientGameTest --no-daemon --stacktrace
+      - name: Build and test Minecraft 1.21.8
+        run: |
+          gradle clean build --no-daemon --stacktrace \
+            -Pminecraft_version=1.21.8 \
+            -Pfabric_api_version=0.136.1+1.21.8 \
+            "-Pminecraft_dependency=~1.21.8" \
+            "-Pfabric_api_dependency=>=0.136.1" \
+            -Parchives_base_name=not-enough-hints-1.21.8
+          gradle runProductionClientGameTest --no-daemon --stacktrace \
+            -Pminecraft_version=1.21.8 \
+            -Pfabric_api_version=0.136.1+1.21.8 \
+            "-Pminecraft_dependency=~1.21.8" \
+            "-Pfabric_api_dependency=>=0.136.1" \
+            -Parchives_base_name=not-enough-hints-1.21.8
 
-      - name: Find development JAR
-        id: jar
+      - name: Stage Minecraft 1.21.8 JAR
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          mapfile -t JARS < <(find build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' ! -name '*-dev.jar' | sort)
+          if [[ "${#JARS[@]}" -ne 1 ]]; then
+            echo "::error::Expected exactly one Minecraft 1.21.8 JAR, found ${#JARS[@]}."
+            exit 1
+          fi
+          MOD_VERSION="$(sed -n 's/^mod_version=//p' gradle.properties | tr -d '[:space:]')"
+          cp "${JARS[0]}" "dist/not-enough-hints-${MOD_VERSION}-fabric-1.21.8.jar"
+
+      - name: Build and test Minecraft 1.21.7
+        run: |
+          gradle clean build --no-daemon --stacktrace \
+            -Pminecraft_version=1.21.7 \
+            -Pfabric_api_version=0.129.0+1.21.7 \
+            "-Pminecraft_dependency=~1.21.7" \
+            "-Pfabric_api_dependency=>=0.129.0" \
+            -Parchives_base_name=not-enough-hints-1.21.7
+          gradle runProductionClientGameTest --no-daemon --stacktrace \
+            -Pminecraft_version=1.21.7 \
+            -Pfabric_api_version=0.129.0+1.21.7 \
+            "-Pminecraft_dependency=~1.21.7" \
+            "-Pfabric_api_dependency=>=0.129.0" \
+            -Parchives_base_name=not-enough-hints-1.21.7
+
+      - name: Stage Minecraft 1.21.7 JAR
         shell: bash
         run: |
           set -euo pipefail
           mapfile -t JARS < <(find build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' ! -name '*-dev.jar' | sort)
-
           if [[ "${#JARS[@]}" -ne 1 ]]; then
-            echo "::error::Expected exactly one development JAR, found ${#JARS[@]}."
-            for jar in "${JARS[@]}"; do echo "$jar"; done
+            echo "::error::Expected exactly one Minecraft 1.21.7 JAR, found ${#JARS[@]}."
             exit 1
           fi
-
-          echo "jar=${JARS[0]}" >> "$GITHUB_OUTPUT"
-          echo "short_sha=${GITHUB_SHA:0:7}" >> "$GITHUB_OUTPUT"
+          MOD_VERSION="$(sed -n 's/^mod_version=//p' gradle.properties | tr -d '[:space:]')"
+          cp "${JARS[0]}" "dist/not-enough-hints-${MOD_VERSION}-fabric-1.21.7.jar"
 
       - name: Replace development prerelease
         env:
@@ -60,9 +96,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          SHORT_SHA="${GITHUB_SHA:0:7}"
+          MOD_VERSION="$(sed -n 's/^mod_version=//p' gradle.properties | tr -d '[:space:]')"
 
           if gh release view dev >/dev/null 2>&1; then
             gh release delete dev --yes --cleanup-tag
           fi
 
-          gh release create dev "${{ steps.jar.outputs.jar }}#Fabric 1.21.8 development JAR" --target "$GITHUB_SHA" --title "Not Enough Hints dev ${{ steps.jar.outputs.short_sha }}" --notes "Automated development build from dev at commit $GITHUB_SHA. This is a prerelease and may contain incomplete features." --prerelease
+          gh release create dev \
+            "dist/not-enough-hints-${MOD_VERSION}-fabric-1.21.8.jar#Fabric 1.21.8 development JAR" \
+            "dist/not-enough-hints-${MOD_VERSION}-fabric-1.21.7.jar#Fabric 1.21.7 development JAR" \
+            --target "$GITHUB_SHA" \
+            --title "Not Enough Hints dev $SHORT_SHA" \
+            --notes "Automated development build from dev at commit $GITHUB_SHA. Both Minecraft targets passed the production client GameTest. This is a prerelease and may contain incomplete features." \
+            --prerelease

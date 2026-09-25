@@ -1,60 +1,57 @@
 # CI/CD Plan
 
-NEH will reuse the release discipline from `dev2pew/TreasureMapFix` without copying assumptions that only fit that project.
+NEH uses two protected release paths: automatic development prereleases from `dev`, and manual stable releases from `main`.
 
 ## Branches
 
 - `main`: canonical branch and only source of stable releases.
-- `dev`: integration branch and source of automatic development builds.
-- feature branches: optional; must pass CI before merge.
+- `dev`: integration branch and source of automatic development prereleases.
+- feature or compatibility branches: optional; CI runs before merge.
+
+## Supported build matrix
+
+The current shared source tree is tested against:
+
+| Minecraft | Fabric API |
+| --- | --- |
+| 1.21.8 | 0.136.1+1.21.8 |
+| 1.21.7 | 0.129.0+1.21.7 |
+
+YACL `3.8.1+1.21.6-fabric`, Mod Menu `15.0.2`, and the Traveler's Backpack `10.8.4` compile-only adapter target are shared across these two builds.
+
+A target is not considered supported unless both the normal build/unit-test job and the production client GameTest pass for that target.
 
 ## CI
 
-Once the Gradle scaffold exists, every push and pull request will run:
+Every push and pull request runs:
 
-1. checkout;
-2. Temurin Java 21 setup for Minecraft 1.21.8;
-3. Gradle setup;
-4. formatter/checkstyle or equivalent deterministic style check;
-5. `./gradlew build --no-daemon --stacktrace`;
-6. unit tests;
-7. configured GameTests/client tests when available;
-8. upload non-sources/non-javadoc development JARs as short-retention artifacts.
+1. repository checkout;
+2. Temurin Java 21;
+3. Gradle 9.5.1;
+4. Spotless formatting checks;
+5. compilation, remapping, and JUnit tests for each supported Minecraft target;
+6. production client GameTests for each supported target;
+7. short-retention JAR and GameTest screenshot artifacts.
 
-The workflow must not publish a GitHub Release for ordinary `main` pushes.
+CI does not publish a GitHub release.
 
 ## Development releases
 
-Pushes to `dev` may publish a GitHub prerelease after the project becomes buildable.
+Pushes to `dev` build and production-test both supported Minecraft targets before replacing the moving `dev` prerelease.
 
-Required properties:
-
-- prerelease flag enabled;
-- unique tag containing the base mod version and commit/build identifier;
-- artifact built from the exact commit being tagged;
-- failed tests prevent publication;
-- development tags never overlap stable semantic-version tags;
-- retention/cleanup policy prevents unbounded nightly release accumulation.
-
-A single moving `dev` prerelease is acceptable if GitHub's release/tag handling remains deterministic. Otherwise use immutable prerelease tags and periodically prune them.
+The release contains one target-specific JAR for Minecraft 1.21.8 and one for Minecraft 1.21.7. The release tag points at the exact commit that produced those artifacts. A failed build or production client test prevents publication.
 
 ## Stable releases
 
-Stable releases remain manual through `workflow_dispatch`, following the working pattern in TreasureMapFix.
+Stable releases use `workflow_dispatch` and remain restricted to `main`.
 
-Required checks:
+The workflow checks:
 
-- workflow must run from `main`;
-- input version must use the chosen semantic-version format;
-- input version must match the project metadata;
-- target tag must not already exist;
-- clean build and all configured tests must pass;
-- exactly the expected release JAR set must be selected;
-- GitHub Release is created only after successful validation;
-- release is marked latest only for stable versions.
+- the selected ref is `main`;
+- the input version uses `X.Y.Z`;
+- the input version matches `mod_version`;
+- the stable tag does not already exist;
+- both supported Minecraft builds pass compilation, JUnit, remapping, and production client GameTests;
+- one target-specific release JAR is staged for each supported Minecraft version.
 
-## Why workflows are not committed yet
-
-The repository currently contains planning documents only. Adding a build workflow before `gradlew`, Gradle metadata, and source sets exist would produce guaranteed CI failures.
-
-The first implementation commit will add the Fabric 1.21.8 scaffold and CI together. The stable release workflow follows after artifact naming and the test task graph are fixed.
+The GitHub release is created only after those checks pass.

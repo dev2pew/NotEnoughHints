@@ -9,8 +9,20 @@ permissions:
 
 jobs:
   build:
-    name: Build and test
+    name: Build and test / Minecraft ${{ matrix.minecraft }}
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - minecraft: "1.21.8"
+            fabric_api: "0.136.1+1.21.8"
+            minecraft_dependency: "~1.21.8"
+            fabric_api_dependency: ">=0.136.1"
+          - minecraft: "1.21.7"
+            fabric_api: "0.129.0+1.21.7"
+            minecraft_dependency: "~1.21.7"
+            fabric_api_dependency: ">=0.129.0"
 
     steps:
       - name: Check out repository
@@ -28,12 +40,18 @@ jobs:
           gradle-version: "9.5.1"
 
       - name: Check formatting and build
-        run: gradle spotlessCheck build --no-daemon --stacktrace
+        run: >
+          gradle spotlessCheck build --no-daemon --stacktrace
+          -Pminecraft_version=${{ matrix.minecraft }}
+          -Pfabric_api_version=${{ matrix.fabric_api }}
+          "-Pminecraft_dependency=${{ matrix.minecraft_dependency }}"
+          "-Pfabric_api_dependency=${{ matrix.fabric_api_dependency }}"
+          -Parchives_base_name=not-enough-hints-${{ matrix.minecraft }}
 
       - name: Upload development build
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: not-enough-hints-${{ github.sha }}
+          name: not-enough-hints-${{ matrix.minecraft }}-${{ github.sha }}
           path: |
             build/libs/*.jar
             !build/libs/*-sources.jar
@@ -43,8 +61,20 @@ jobs:
           retention-days: 7
 
   client-game-test:
-    name: Production client game test
+    name: Production client game test / Minecraft ${{ matrix.minecraft }}
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - minecraft: "1.21.8"
+            fabric_api: "0.136.1+1.21.8"
+            minecraft_dependency: "~1.21.8"
+            fabric_api_dependency: ">=0.136.1"
+          - minecraft: "1.21.7"
+            fabric_api: "0.129.0+1.21.7"
+            minecraft_dependency: "~1.21.7"
+            fabric_api_dependency: ">=0.129.0"
 
     steps:
       - name: Check out repository
@@ -62,13 +92,19 @@ jobs:
           gradle-version: "9.5.1"
 
       - name: Run production client game test
-        run: gradle runProductionClientGameTest --no-daemon --stacktrace
+        run: >
+          gradle runProductionClientGameTest --no-daemon --stacktrace
+          -Pminecraft_version=${{ matrix.minecraft }}
+          -Pfabric_api_version=${{ matrix.fabric_api }}
+          "-Pminecraft_dependency=${{ matrix.minecraft_dependency }}"
+          "-Pfabric_api_dependency=${{ matrix.fabric_api_dependency }}"
+          -Parchives_base_name=not-enough-hints-${{ matrix.minecraft }}
 
       - name: Upload client game test screenshots
         if: always()
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: not-enough-hints-client-gametest-${{ github.sha }}
+          name: not-enough-hints-client-gametest-${{ matrix.minecraft }}-${{ github.sha }}
           path: build/run/clientGameTest/screenshots
           if-no-files-found: warn
           retention-days: 7

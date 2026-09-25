@@ -6,9 +6,9 @@ NEH is intended for heavily customized modpacks where players need temporary, co
 
 ## Status
 
-Development has started on the `dev` branch. The current build is an early prototype, not a release.
+Development is active on the `dev` branch. Automated development builds are prereleases, not stable releases.
 
-Initial implementation target: Minecraft Java Edition 1.21.8 on Fabric.
+Tested Fabric targets: Minecraft Java Edition 1.21.7 and 1.21.8. Both targets must pass the normal build/test job and the production client GameTest before publication.
 
 ## Project contract
 
@@ -31,8 +31,8 @@ Source projects that should be supplied or inspected before implementation are t
 
 ## Repository policy
 
-`main` is the canonical branch. A `dev` branch is used for integration builds once the Gradle project exists.
+`main` is the canonical branch. The `dev` branch carries integration work and automatic prereleases.
 
-Development builds will be produced automatically from `dev`. Stable GitHub releases remain a manual workflow from `main`, following the release pattern already used in `dev2pew/TreasureMapFix`.
+Development releases are built from the exact `dev` commit after both supported Minecraft targets pass their production client tests. Stable GitHub releases remain a manual workflow from `main`.
 
 No license has been selected for NEH yet. Reference-source licenses must be checked before code is copied or adapted.
