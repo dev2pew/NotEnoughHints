@@ -126,6 +126,10 @@ License file blob `13ef09e227188a747c71766c250bbbbd653aecaa`: MIT.
 
 Branch inspected through GitHub connector: `1.21.8-fabric`.
 
+Branch head rechecked during adapter implementation: `c919f08588e348135391148ba75c771e24910853`.
+
+Published Fabric release used for compile-only compatibility checking: Traveler's Backpack `10.8.4` for Minecraft 1.21.8. Modrinth version ID: `P3LjVY8i`. CurseForge file ID: `7106235`.
+
 `gradle.properties` blob `b265ded900555aaf4b8ab77c10698712034314b2` declares Minecraft 1.21.8, Traveler's Backpack 10.8.4, Fabric Loader 0.17.2, and Fabric API 0.132.0+1.21.8.
 
 Relevant file blobs:
@@ -140,11 +144,16 @@ Observed target-version storage model:
 - `BackpackContainerContents` exposes the contained `ItemStack` list;
 - the component codec explicitly bounds the list.
 
-NEH integration direction:
+NEH integration implementation:
 
-A Traveler's Backpack adapter should prefer reading the target mod's public data component from the backpack `ItemStack` rather than constructing a full `BackpackWrapper` merely to answer a read-only `inventory_contains` predicate.
+- the adapter reads `ModDataComponents.BACKPACK_CONTAINER` directly from the target `ItemStack`;
+- it iterates `BackpackContainerContents#getItems()`;
+- it does not construct `BackpackWrapper`;
+- it is registered only when Fabric Loader reports `travelersbackpack` as loaded;
+- the dependency is compile-only, so Traveler's Backpack is not required at NEH runtime;
+- adapter exceptions or linkage failures are isolated by the NEH adapter registry.
 
-Traveler's Backpack's Fabric project is published under LGPLv3. The adapter should remain optional and isolated behind a mod-presence check.
+Traveler's Backpack's Fabric project is published under LGPLv3. No target-mod source was copied into NEH; the adapter independently calls the public component types described above.
 
 ## External API evidence
 

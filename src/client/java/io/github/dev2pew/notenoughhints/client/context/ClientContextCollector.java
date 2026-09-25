@@ -18,6 +18,7 @@ import net.minecraft.world.item.component.ItemContainerContents;
 
 import net.fabricmc.loader.api.FabricLoader;
 
+import io.github.dev2pew.notenoughhints.client.integration.NestedInventoryAdapterRegistry;
 import io.github.dev2pew.notenoughhints.client.keybind.KeyBindingCatalog;
 import io.github.dev2pew.notenoughhints.context.ClientContext;
 import io.github.dev2pew.notenoughhints.context.EquipmentSlotKey;
@@ -29,14 +30,17 @@ public final class ClientContextCollector {
     private final Set<String> loadedModIds;
     private final boolean collectInventory;
     private final boolean collectNestedInventory;
+    private final NestedInventoryAdapterRegistry nestedInventoryAdapters;
 
     public ClientContextCollector(
             KeyBindingCatalog keyBindingCatalog,
             boolean collectInventory,
-            boolean collectNestedInventory) {
+            boolean collectNestedInventory,
+            NestedInventoryAdapterRegistry nestedInventoryAdapters) {
         this.keyBindingCatalog = keyBindingCatalog;
         this.collectInventory = collectInventory;
         this.collectNestedInventory = collectNestedInventory;
+        this.nestedInventoryAdapters = nestedInventoryAdapters;
         this.loadedModIds =
                 FabricLoader.getInstance().getAllMods().stream()
                         .map(container -> container.getMetadata().getId())
@@ -94,7 +98,7 @@ public final class ClientContextCollector {
                 keyBindingCatalog.snapshot().keySet());
     }
 
-    private static InventorySnapshot collectInventory(Minecraft client, boolean includeNested) {
+    private InventorySnapshot collectInventory(Minecraft client, boolean includeNested) {
         Inventory inventory = client.player.getInventory();
         EnumMap<InventoryScope, Map<String, Integer>> direct =
                 new EnumMap<>(InventoryScope.class);
@@ -111,9 +115,13 @@ public final class ClientContextCollector {
                     slot < Inventory.SELECTION_SIZE
                             ? InventoryScope.HOTBAR
                             : InventoryScope.MAIN_INVENTORY;
-            addDirectAndNested(direct, nested, scope, stack, includeNested);
             addDirectAndNested(
-                    direct, nested, InventoryScope.PLAYER_INVENTORY, stack, includeNested);
+                    direct,
+                    nested,
+                    stack,
+                    includeNested,
+                    scope,
+                    InventoryScope.PLAYER_INVENTORY);
         }
 
         for (EquipmentSlot slot :
@@ -124,27 +132,37 @@ public final class ClientContextCollector {
                     EquipmentSlot.FEET
                 }) {
             ItemStack stack = client.player.getItemBySlot(slot);
-            addDirectAndNested(direct, nested, InventoryScope.ARMOR, stack, includeNested);
             addDirectAndNested(
-                    direct, nested, InventoryScope.PLAYER_INVENTORY, stack, includeNested);
+                    direct,
+                    nested,
+                    stack,
+                    includeNested,
+                    InventoryScope.ARMOR,
+                    InventoryScope.PLAYER_INVENTORY);
         }
 
         ItemStack offhand = client.player.getOffhandItem();
-        addDirectAndNested(direct, nested, InventoryScope.OFFHAND, offhand, includeNested);
         addDirectAndNested(
-                direct, nested, InventoryScope.PLAYER_INVENTORY, offhand, includeNested);
+                direct,
+                nested,
+                offhand,
+                includeNested,
+                InventoryScope.OFFHAND,
+                InventoryScope.PLAYER_INVENTORY);
 
         return new InventorySnapshot(direct, nested);
     }
 
-    private static void addDirectAndNested(
+    private void addDirectAndNested(
             Map<InventoryScope, Map<String, Integer>> direct,
             Map<InventoryScope, Map<String, Integer>> nested,
-            InventoryScope scope,
             ItemStack stack,
-            boolean includeNested) {
-        add(direct.get(scope), stack);
-        add(nested.get(scope), stack);
+            boolean includeNested,
+            InventoryScope... scopes) {
+        for (InventoryScope scope : scopes) {
+            add(direct.get(scope), stack);
+            add(nested.get(scope), stack);
+        }
 
         if (!includeNested || stack.isEmpty()) {
             return;
@@ -153,15 +171,27 @@ public final class ClientContextCollector {
         ItemContainerContents container = stack.get(DataComponents.CONTAINER);
         if (container != null) {
             for (ItemStack nestedStack : container.nonEmptyItems()) {
-                add(nested.get(scope), nestedStack);
+                addToScopes(nested, nestedStack, scopes);
             }
         }
 
         BundleContents bundle = stack.get(DataComponents.BUNDLE_CONTENTS);
         if (bundle != null) {
             for (ItemStack nestedStack : bundle.items()) {
-                add(nested.get(scope), nestedStack);
+                addToScopes(nested, nestedStack, scopes);
             }
+        }
+
+        nestedInventoryAdapters.visitContents(
+                stack, nestedStack -> addToScopes(nested, nestedStack, scopes));
+    }
+
+    private static void addToScopes(
+            Map<InventoryScope, Map<String, Integer>> counts,
+            ItemStack stack,
+            InventoryScope... scopes) {
+        for (InventoryScope scope : scopes) {
+            add(counts.get(scope), stack);
         }
     }
 

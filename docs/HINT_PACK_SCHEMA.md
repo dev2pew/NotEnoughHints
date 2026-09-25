@@ -244,7 +244,9 @@ Supported inventory scopes:
 
 `scope` defaults to `player_inventory`. `min_count` defaults to (1) and must be at least (1).
 
-Set `"include_nested": true` to include the immediate contents of vanilla component-backed container items, including shulker-style `container` contents and bundles. Nested lookup is intentionally one level deep. A container inside another container is not recursively opened.
+Set `"include_nested": true` to include immediate nested contents. Vanilla component-backed containers include shulker-style `container` contents and bundles. Supported mod-owned containers are added through optional NEH adapters; the first adapter reads Traveler's Backpack storage from its `travelersbackpack:backpack_container` data component.
+
+Nested lookup is intentionally one level deep. A container inside another container is not recursively opened, including a container returned by a compatibility adapter.
 
 Direct and nested-inclusive counts are stored separately. A rule without `include_nested` therefore retains ordinary player-inventory semantics even when another rule enables nested scanning.
 
@@ -300,4 +302,4 @@ NEH builds the inventory count index only when an enabled rule contains an `inve
 }
 ```
 
-Mod-owned nested-container adapters, custom mod integration state, sprite composition, and runtime reload controls are not part of this schema slice yet. Vanilla component-backed nested contents are supported one level deep.
+Traveler's Backpack nested storage is supported through an optional adapter when the target mod is loaded. Other mod-owned container adapters, custom mod integration state, sprite composition, and runtime reload controls remain later development work.

@@ -16,6 +16,8 @@ import io.github.dev2pew.notenoughhints.client.debug.DiagnosticsController;
 import io.github.dev2pew.notenoughhints.client.debug.DiagnosticsRenderer;
 import io.github.dev2pew.notenoughhints.client.hud.HintController;
 import io.github.dev2pew.notenoughhints.client.hud.HintRenderer;
+import io.github.dev2pew.notenoughhints.client.integration.IntegrationBootstrap;
+import io.github.dev2pew.notenoughhints.client.integration.NestedInventoryAdapterRegistry;
 import io.github.dev2pew.notenoughhints.client.keybind.KeyBindingCatalog;
 import io.github.dev2pew.notenoughhints.config.HintPack;
 import io.github.dev2pew.notenoughhints.context.ClientContext;
@@ -34,12 +36,19 @@ public final class NotEnoughHintsClient implements ClientModInitializer {
         HintPack hintPack = hintPackManager.current();
 
         KeyBindingCatalog keyBindingCatalog = new KeyBindingCatalog();
+        NestedInventoryAdapterRegistry nestedInventoryAdapters =
+                new NestedInventoryAdapterRegistry();
+        IntegrationBootstrap.registerAvailableAdapters(nestedInventoryAdapters);
+
         RuleEvaluator ruleEvaluator = new RuleEvaluator();
         boolean collectInventory = ruleEvaluator.requiresInventory(hintPack.rules());
         boolean collectNestedInventory = ruleEvaluator.requiresNestedInventory(hintPack.rules());
         ClientContextCollector contextCollector =
                 new ClientContextCollector(
-                        keyBindingCatalog, collectInventory, collectNestedInventory);
+                        keyBindingCatalog,
+                        collectInventory,
+                        collectNestedInventory,
+                        nestedInventoryAdapters);
 
         HintController hintController =
                 new HintController(
@@ -49,7 +58,8 @@ public final class NotEnoughHintsClient implements ClientModInitializer {
                         hintPack.rules());
         HintRenderer hintRenderer = new HintRenderer(hintController);
 
-        DiagnosticsController diagnosticsController = new DiagnosticsController(configManager);
+        DiagnosticsController diagnosticsController =
+                new DiagnosticsController(configManager, nestedInventoryAdapters);
         DiagnosticsRenderer diagnosticsRenderer = new DiagnosticsRenderer(diagnosticsController);
 
         ClientTickEvents.START_CLIENT_TICK.register(
@@ -74,8 +84,9 @@ public final class NotEnoughHintsClient implements ClientModInitializer {
                 diagnosticsRenderer::render);
 
         LOGGER.info(
-                "Not Enough Hints development build initialized; inventory indexing: {}, nested indexing: {}",
+                "Not Enough Hints development build initialized; inventory indexing: {}, nested indexing: {}, adapters: {}",
                 collectInventory,
-                collectNestedInventory);
+                collectNestedInventory,
+                nestedInventoryAdapters.activeAdapterIds());
     }
 }
