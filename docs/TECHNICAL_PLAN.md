@@ -663,3 +663,37 @@ Any new feature proposed during implementation must be classified as one of:
 A deferred feature does not enter the active milestone unless it blocks correctness, compatibility, or testing.
 
 Update this document before implementing a change that alters the rule model, configuration schema, dependency policy, compatibility tiers, branch policy, or performance model.
+
+
+## 21. Hint visual contract
+
+The detailed visual rules are maintained in `docs/HINT_VISUAL_SPEC.md`.
+
+Implementation requirements added by the visual specification:
+
+- every hint has a required glyph frame and required description;
+- binding text is optional and may be placed inside the glyph frame;
+- the default preset is a compact glyph containing the resolved binding followed by the description;
+- built-in frame shapes include keycap, rounded square, square, circle, and pill;
+- long bindings and multi-token chords must expand horizontally instead of being squeezed into a fixed square;
+- creator descriptions fall back to the keybinding translation and then to `Unnamed action`;
+- hint groups own anchor, offsets, flow direction, wrapping, and spacing;
+- the initial release does not move the vanilla hotbar;
+- visual animation is not required for the first playable build.
+
+The supplied Controllable screenshot and source are treated as a presentation reference, not as an asset source.
+
+## 22. Source audit corrections
+
+The supplied source bundle was inspected before implementation.
+
+Important corrections to prior assumptions:
+
+- the supplied Controllable checkout is `multiloader/26.2`, not the 1.21.8 branch; the actual `multiloader/1.21.8` branch was inspected separately through GitHub;
+- the supplied Traveler's Backpack checkout is Forge 1.20.1; the actual `1.21.8-fabric` branch was inspected separately through GitHub;
+- Binders declares MIT in `gradle.properties`, but the repository `LICENSE.txt` contains Forge LGPL 2.1 boilerplate rather than an MIT grant for Binders itself, so Binders code remains reference-only until licensing is clarified;
+- ModKeys is MIT in the supplied repository and is useful for config migration and keybinding-catalog behavior, but its renderer rescans bindings through the favorites path and that pattern must not be copied.
+
+Traveler's Backpack 1.21.8 stores backpack contents in dedicated data components, including `BACKPACK_CONTAINER`. The initial NEH adapter should therefore perform a read-only component lookup rather than instantiate the mod's full backpack wrapper solely to answer an inventory predicate.
+
+All concrete source observations and blob/commit references are recorded in `docs/REFERENCE_EVIDENCE.md`.
