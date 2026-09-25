@@ -8,6 +8,12 @@ Prefer source archives or repository links pinned to an exact tag/commit. Do not
 
 ### Controllable
 
+Repository: https://github.com/MrCrayfish/Controllable
+
+Current source branch matching the target: `multiloader/1.21.8`.
+
+Published repository license: MIT.
+
 Purpose:
 
 - study controller-oriented HUD composition;
@@ -17,15 +23,19 @@ Purpose:
 
 Need:
 
-- exact source version closest to Minecraft 1.21.8;
-- license file;
+- source snapshot from `multiloader/1.21.8` pinned to an exact commit;
+- license file from that snapshot;
 - build metadata;
 - relevant HUD/render classes;
 - any dependency/library choices used by that version.
 
-Do not copy rendering code until its license and version are verified.
-
 ### Traveler's Backpack
+
+Repository: https://github.com/Tiviacz1337/Travelers-Backpack
+
+Current source branch matching the target: `1.21.8-fabric`.
+
+Published Fabric project license: LGPL-3.0.
 
 Purpose:
 
@@ -36,7 +46,7 @@ Purpose:
 
 Need:
 
-- Fabric source for the exact 1.21.8-compatible release if available;
+- source snapshot from `1.21.8-fabric` pinned to an exact commit;
 - license;
 - item/storage component classes;
 - inventory/container interfaces;
@@ -44,6 +54,10 @@ Need:
 - API classes intended for other mods.
 
 ### ModKeys / ModKyes
+
+Repository: https://github.com/Cehira123/modkeys
+
+Current source branch: `main`. The repository describes the project as Fabric 1.20.1 and includes source plus an MIT LICENSE file.
 
 Purpose:
 
@@ -54,28 +68,34 @@ Purpose:
 
 Need:
 
-- repository snapshot used for the 1.20.1 Fabric build;
+- repository snapshot pinned to an exact commit;
 - license file from the same commit;
 - config schema;
 - keybinding discovery code;
 - HUD renderer;
 - config UI.
 
-Note: previous public metadata showed a license inconsistency between repository and distribution listing. Treat the source as reference-only until the exact commit's licensing is verified.
+Previous distribution metadata did not consistently match the repository license. The repository snapshot's license must be preserved in the evidence log before any code is adapted.
 
 ## Priority B
 
 ### Binders
 
+Project page: https://www.curseforge.com/minecraft/mc-mods/binders
+
+The published project targets Forge 1.20.1 and is listed under the MIT License.
+
 Purpose:
 
 - study declarative condition-driven HUD entries;
-- compare its selector and context model with NEH's rule engine.
+- compare its selector and context model with NEH's rule engine;
+- inspect its context-aware visibility model and dynamic response to key remapping.
 
 Need:
 
-- source repository if available;
-- exact license;
+- source repository linked by the project page;
+- exact commit/tag;
+- license from the source tree;
 - config examples;
 - condition evaluation code;
 - rendering/layout code.
@@ -87,24 +107,20 @@ Purpose:
 - compare current-version keybinding enumeration and 1.21.8 rendering;
 - identify API changes that older reference projects do not show.
 
-Source is useful only if the license permits inspection/reuse.
+Source is useful only if its license permits the intended type of reuse.
 
 ## What to send in the next turn
 
-For each project, provide one of:
-
-1. a source ZIP/tar archive;
-2. a repository URL plus exact tag or commit;
-3. the built JAR only when source is unavailable and the goal is behavior/resource inspection rather than source reuse.
-
 Best next set:
 
-- Controllable source;
-- Traveler's Backpack source;
-- ModKeys source;
-- Binders source if available.
+1. Controllable `multiloader/1.21.8` source snapshot or exact commit.
+2. Traveler's Backpack `1.21.8-fabric` source snapshot or exact commit.
+3. ModKeys `main` source snapshot or exact commit.
+4. Binders source snapshot or exact source repository/tag.
 
-Also include the exact Minecraft/mod versions currently used in the intended test modpack when known.
+A repository URL plus exact commit is sufficient. Uploading ZIP archives is also fine.
+
+If the intended test modpack already has exact versions of these mods, include those version numbers as well. A reference source should preferably match the binary that will be tested.
 
 ## Evidence log to create during implementation
 
@@ -118,4 +134,4 @@ For every borrowed or adapted implementation idea, record:
 - what NEH used from it;
 - whether code was copied, adapted, or independently reimplemented.
 
-This log should live in docs/REFERENCE_EVIDENCE.md once implementation starts.
+This log should live in `docs/REFERENCE_EVIDENCE.md` once implementation starts.
