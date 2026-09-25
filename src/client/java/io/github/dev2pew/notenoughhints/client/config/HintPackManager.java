@@ -56,6 +56,7 @@ public final class HintPackManager {
     private final Path hintsDirectory;
     private final HintPackJsonParser parser = new HintPackJsonParser();
     private volatile HintPack current = HintPack.empty();
+    private volatile List<String> issues = List.of();
 
     public HintPackManager() {
         this(FabricLoader.getInstance().getConfigDir().resolve("not-enough-hints").resolve("hints"));
@@ -69,20 +70,29 @@ public final class HintPackManager {
         return current;
     }
 
+    public List<String> issues() {
+        return issues;
+    }
+
     public void load() {
         try {
             Files.createDirectories(hintsDirectory);
             ensureStarterPack();
-            current = loadDirectory();
+            LoadResult result = loadDirectory();
+            current = result.pack();
+            issues = result.issues();
         } catch (IOException exception) {
+            String issue = "Failed to load hint-pack directory: " + exception.getMessage();
             LOGGER.error("Failed to load NEH hint packs from {}", hintsDirectory, exception);
             current = HintPack.empty();
+            issues = List.of(issue);
         }
     }
 
-    private HintPack loadDirectory() throws IOException {
+    private LoadResult loadDirectory() throws IOException {
         List<HintGroupDefinition> groups = new ArrayList<>();
         List<Rule> rules = new ArrayList<>();
+        List<String> loadIssues = new ArrayList<>();
         Set<String> groupIds = new HashSet<>();
         Set<String> hintIds = new HashSet<>();
         Set<String> ruleIds = new HashSet<>();
@@ -92,12 +102,17 @@ public final class HintPackManager {
             try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
                 pack = parser.parse(reader);
             } catch (IOException | RuntimeException exception) {
+                String issue =
+                        file.getFileName() + ": " + exception.getClass().getSimpleName()
+                                + ": " + String.valueOf(exception.getMessage());
+                loadIssues.add(issue);
                 LOGGER.error("Ignoring invalid NEH hint pack {}", file, exception);
                 continue;
             }
 
             String conflict = findConflict(pack, groupIds, hintIds, ruleIds);
             if (conflict != null) {
+                loadIssues.add(file.getFileName() + ": " + conflict);
                 LOGGER.error("Ignoring NEH hint pack {} because {}", file, conflict);
                 continue;
             }
@@ -117,7 +132,9 @@ public final class HintPackManager {
                 groups.size(),
                 rules.size(),
                 hintsDirectory);
-        return new HintPack(HintPack.CURRENT_SCHEMA_VERSION, groups, rules);
+        return new LoadResult(
+                new HintPack(HintPack.CURRENT_SCHEMA_VERSION, groups, rules),
+                List.copyOf(loadIssues));
     }
 
     private List<Path> hintPackFiles() throws IOException {
@@ -143,6 +160,8 @@ public final class HintPackManager {
                 StandardOpenOption.WRITE);
         LOGGER.info("Created starter NEH hint pack at {}", starter);
     }
+
+    private record LoadResult(HintPack pack, List<String> issues) {}
 
     private static String findConflict(
             HintPack pack, Set<String> groupIds, Set<String> hintIds, Set<String> ruleIds) {

@@ -21,6 +21,8 @@ The current screen edits:
 - NEH HUD scale;
 - NEH HUD opacity.
 
+It also shows the currently loaded hint-group/rule counts and provides a manual hint-pack reload action. Reload recomputes the rule engine's inventory dependencies before the next context snapshot, so adding or removing an `inventory_contains` rule does not leave stale observation requirements behind. Invalid hint-pack files are isolated, recorded as load issues, and do not prevent independent valid files from loading.
+
 Saving the screen writes a complete schema-versioned `NehConfig` through `NehConfigManager`. The manager validates the replacement first, writes a sibling temporary file, and then replaces `neh.json`. The in-memory configuration changes only after the file replacement succeeds.
 
 Because runtime HUD controllers read `NehConfigManager.current()`, saved presentation changes apply on subsequent client ticks without reparsing files from the render callback.
@@ -31,9 +33,8 @@ The first screen does not complete M6. Remaining work includes:
 
 - hint-group placement editing;
 - per-rule enable or disable controls;
-- validation and unresolved-reference reporting;
-- hint-pack reload controls;
-- import or reload workflow;
+- detailed validation and unresolved-reference reporting;
+- import workflow;
 - a direct NEH access path when Mod Menu is absent, if required by the final UX;
 - localized strings beyond English.
 

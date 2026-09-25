@@ -24,9 +24,7 @@ import io.github.dev2pew.notenoughhints.rule.RuleEvaluator;
 public final class HintController {
     private final NehConfigManager configManager;
     private final KeyBindingCatalog keyBindingCatalog;
-    private final List<HintGroupDefinition> groups;
-    private final List<Rule> rules;
-    private final Set<String> defaultVisibleHintIds;
+    private volatile DefinitionState definitions;
     private final RuleEvaluator ruleEvaluator = new RuleEvaluator();
     private final AtomicReference<List<HintGroupRenderState>> renderStates =
             new AtomicReference<>(List.of());
@@ -38,15 +36,22 @@ public final class HintController {
             List<Rule> rules) {
         this.configManager = configManager;
         this.keyBindingCatalog = keyBindingCatalog;
-        this.groups = List.copyOf(groups);
-        this.rules = List.copyOf(rules);
-        validateUniqueIds(this.groups);
-        this.defaultVisibleHintIds =
-                this.groups.stream()
+        replaceDefinitions(groups, rules);
+    }
+
+    public void replaceDefinitions(
+            List<HintGroupDefinition> groups, List<Rule> rules) {
+        List<HintGroupDefinition> groupCopy = List.copyOf(groups);
+        List<Rule> ruleCopy = List.copyOf(rules);
+        validateUniqueIds(groupCopy);
+        Set<String> defaultVisibleHintIds =
+                groupCopy.stream()
                         .flatMap(group -> group.hints().stream())
                         .filter(HintDefinition::visibleByDefault)
                         .map(HintDefinition::id)
                         .collect(Collectors.toUnmodifiableSet());
+        definitions = new DefinitionState(groupCopy, ruleCopy, defaultVisibleHintIds);
+        renderStates.set(List.of());
     }
 
     public void update(ClientContext context) {
@@ -56,11 +61,16 @@ public final class HintController {
             return;
         }
 
+        DefinitionState currentDefinitions = definitions;
         RuleEvaluationResult evaluation =
-                ruleEvaluator.evaluate(context, rules, defaultVisibleHintIds);
+                ruleEvaluator.evaluate(
+                        context,
+                        currentDefinitions.rules(),
+                        currentDefinitions.defaultVisibleHintIds());
 
-        List<HintGroupRenderState> nextStates = new ArrayList<>(groups.size());
-        for (HintGroupDefinition group : groups) {
+        List<HintGroupRenderState> nextStates =
+                new ArrayList<>(currentDefinitions.groups().size());
+        for (HintGroupDefinition group : currentDefinitions.groups()) {
             List<ResolvedHint> resolved = new ArrayList<>();
             for (HintDefinition definition : group.hints()) {
                 if (!evaluation.visibleHintIds().contains(definition.id())) {
@@ -117,6 +127,11 @@ public final class HintController {
 
         return java.util.Optional.of(new ResolvedHint(bindingText, description));
     }
+
+    private record DefinitionState(
+            List<HintGroupDefinition> groups,
+            List<Rule> rules,
+            Set<String> defaultVisibleHintIds) {}
 
     private static void validateUniqueIds(List<HintGroupDefinition> groups) {
         Set<String> groupIds = new HashSet<>();

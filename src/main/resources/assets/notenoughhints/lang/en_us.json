@@ -11,5 +11,8 @@
   "option.notenoughhints.scale": "HUD scale",
   "option.notenoughhints.scale.description": "Scale NEH hint groups without changing Minecraft's global GUI scale.",
   "option.notenoughhints.opacity": "HUD opacity",
-  "option.notenoughhints.opacity.description": "Set the opacity used by NEH hint glyphs and descriptions."
+  "option.notenoughhints.opacity.description": "Set the opacity used by NEH hint glyphs and descriptions.",
+  "category.notenoughhints.hint_packs": "Hint packs",
+  "option.notenoughhints.reload_hint_packs": "Reload hint packs",
+  "option.notenoughhints.reload_hint_packs.description": "Reload config/not-enough-hints/hints/*.json. Reopen this screen to refresh the load summary."
 }

@@ -1,5 +1,7 @@
 package io.github.dev2pew.notenoughhints.client;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,13 +27,42 @@ import io.github.dev2pew.notenoughhints.rule.RuleEvaluator;
 
 public final class NotEnoughHintsClient implements ClientModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger(NotEnoughHints.MOD_ID);
+
     private static NehConfigManager configManager;
+    private static HintPackManager hintPackManager;
+    private static ClientContextCollector contextCollector;
+    private static HintController hintController;
+    private static RuleEvaluator ruleEvaluator;
 
     public static NehConfigManager configManager() {
-        if (configManager == null) {
-            throw new IllegalStateException("NEH client has not initialized yet");
-        }
+        requireInitialized();
         return configManager;
+    }
+
+    public static HintPackManager hintPackManager() {
+        requireInitialized();
+        return hintPackManager;
+    }
+
+    public static List<String> reloadHintPacks() {
+        requireInitialized();
+
+        hintPackManager.load();
+        HintPack hintPack = hintPackManager.current();
+        boolean collectInventory = ruleEvaluator.requiresInventory(hintPack.rules());
+        boolean collectNestedInventory = ruleEvaluator.requiresNestedInventory(hintPack.rules());
+
+        contextCollector.setInventoryRequirements(collectInventory, collectNestedInventory);
+        hintController.replaceDefinitions(hintPack.groups(), hintPack.rules());
+
+        LOGGER.info(
+                "Reloaded NEH hint packs; groups: {}, rules: {}, inventory indexing: {}, nested indexing: {}, issues: {}",
+                hintPack.groups().size(),
+                hintPack.rules().size(),
+                collectInventory,
+                collectNestedInventory,
+                hintPackManager.issues().size());
+        return hintPackManager.issues();
     }
 
     @Override
@@ -39,7 +70,7 @@ public final class NotEnoughHintsClient implements ClientModInitializer {
         configManager = new NehConfigManager();
         configManager.load();
 
-        HintPackManager hintPackManager = new HintPackManager();
+        hintPackManager = new HintPackManager();
         hintPackManager.load();
         HintPack hintPack = hintPackManager.current();
 
@@ -48,17 +79,17 @@ public final class NotEnoughHintsClient implements ClientModInitializer {
                 new NestedInventoryAdapterRegistry();
         IntegrationBootstrap.registerAvailableAdapters(nestedInventoryAdapters);
 
-        RuleEvaluator ruleEvaluator = new RuleEvaluator();
+        ruleEvaluator = new RuleEvaluator();
         boolean collectInventory = ruleEvaluator.requiresInventory(hintPack.rules());
         boolean collectNestedInventory = ruleEvaluator.requiresNestedInventory(hintPack.rules());
-        ClientContextCollector contextCollector =
+        contextCollector =
                 new ClientContextCollector(
                         keyBindingCatalog,
                         collectInventory,
                         collectNestedInventory,
                         nestedInventoryAdapters);
 
-        HintController hintController =
+        hintController =
                 new HintController(
                         configManager,
                         keyBindingCatalog,
@@ -96,5 +127,15 @@ public final class NotEnoughHintsClient implements ClientModInitializer {
                 collectInventory,
                 collectNestedInventory,
                 nestedInventoryAdapters.activeAdapterIds());
+    }
+
+    private static void requireInitialized() {
+        if (configManager == null
+                || hintPackManager == null
+                || contextCollector == null
+                || hintController == null
+                || ruleEvaluator == null) {
+            throw new IllegalStateException("NEH client has not initialized yet");
+        }
     }
 }

@@ -28,8 +28,8 @@ import io.github.dev2pew.notenoughhints.context.InventorySnapshot;
 public final class ClientContextCollector {
     private final KeyBindingCatalog keyBindingCatalog;
     private final Set<String> loadedModIds;
-    private final boolean collectInventory;
-    private final boolean collectNestedInventory;
+    private volatile boolean collectInventory;
+    private volatile boolean collectNestedInventory;
     private final NestedInventoryAdapterRegistry nestedInventoryAdapters;
 
     public ClientContextCollector(
@@ -45,6 +45,12 @@ public final class ClientContextCollector {
                 FabricLoader.getInstance().getAllMods().stream()
                         .map(container -> container.getMetadata().getId())
                         .collect(Collectors.toUnmodifiableSet());
+    }
+
+    public void setInventoryRequirements(
+            boolean collectInventory, boolean collectNestedInventory) {
+        this.collectInventory = collectInventory;
+        this.collectNestedInventory = collectNestedInventory;
     }
 
     public ClientContext collect(Minecraft client) {

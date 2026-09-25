@@ -1,6 +1,8 @@
 package io.github.dev2pew.notenoughhints.client.config;
 
+import dev.isxander.yacl3.api.ButtonOption;
 import dev.isxander.yacl3.api.ConfigCategory;
+import dev.isxander.yacl3.api.LabelOption;
 import dev.isxander.yacl3.api.Option;
 import dev.isxander.yacl3.api.OptionDescription;
 import dev.isxander.yacl3.api.YetAnotherConfigLib;
@@ -10,6 +12,8 @@ import dev.isxander.yacl3.api.controller.FloatSliderControllerBuilder;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
+import io.github.dev2pew.notenoughhints.client.NotEnoughHintsClient;
+import io.github.dev2pew.notenoughhints.config.HintPack;
 import io.github.dev2pew.notenoughhints.config.NehConfig;
 
 public final class NehConfigScreen {
@@ -100,9 +104,43 @@ public final class NehConfigScreen {
                                                                         .step(0.05F))
                                                 .build())
                                 .build())
+                .category(buildHintPackCategory())
                 .save(() -> configManager.save(draft.toConfig()))
                 .build()
                 .generateScreen(parent);
+    }
+
+    private static ConfigCategory buildHintPackCategory() {
+        HintPackManager manager = NotEnoughHintsClient.hintPackManager();
+        HintPack pack = manager.current();
+        String summary =
+                manager.issues().isEmpty()
+                        ? "No hint-pack load issues"
+                        : manager.issues().size() + " hint-pack load issue(s); see latest.log";
+
+        return ConfigCategory.createBuilder()
+                .name(Component.translatable("category.notenoughhints.hint_packs"))
+                .option(
+                        LabelOption.create(
+                                Component.literal(
+                                        "Loaded "
+                                                + pack.groups().size()
+                                                + " group(s), "
+                                                + pack.rules().size()
+                                                + " rule(s)")))
+                .option(LabelOption.create(Component.literal(summary)))
+                .option(
+                        ButtonOption.createBuilder()
+                                .name(Component.translatable("option.notenoughhints.reload_hint_packs"))
+                                .description(
+                                        OptionDescription.of(
+                                                Component.translatable(
+                                                        "option.notenoughhints.reload_hint_packs.description")))
+                                .action(
+                                        (screen, option) ->
+                                                NotEnoughHintsClient.reloadHintPacks())
+                                .build())
+                .build();
     }
 
     private static final class Draft {
