@@ -12,7 +12,9 @@ import java.util.List;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonParseException;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,8 +49,14 @@ public final class NehConfigManager {
             return;
         }
 
-        try (Reader reader = Files.newBufferedReader(configFile, StandardCharsets.UTF_8)) {
-            NehConfig loaded = GSON.fromJson(reader, NehConfig.class);
+        try {
+            JsonObject root;
+            try (Reader reader = Files.newBufferedReader(configFile, StandardCharsets.UTF_8)) {
+                root = JsonParser.parseReader(reader).getAsJsonObject();
+            }
+
+            boolean migrated = migrate(root);
+            NehConfig loaded = GSON.fromJson(root, NehConfig.class);
             if (loaded == null) {
                 LOGGER.error("NEH config is empty: {}", configFile);
                 current = NehConfig.defaults();
@@ -63,13 +71,31 @@ public final class NehConfigManager {
             }
 
             current = loaded;
-        } catch (IOException | JsonParseException exception) {
+            if (migrated && !save(loaded)) {
+                LOGGER.error("NEH config migrated in memory but could not be written to {}", configFile);
+            }
+        } catch (IOException | RuntimeException exception) {
             LOGGER.error(
                     "Failed to read NEH config {}; defaults will be used in memory",
                     configFile,
                     exception);
             current = NehConfig.defaults();
         }
+    }
+
+    private static boolean migrate(JsonObject root) {
+        int schemaVersion =
+                root.has("schema_version") ? root.get("schema_version").getAsInt() : 0;
+        if (schemaVersion != 1) {
+            return false;
+        }
+
+        root.addProperty("schema_version", NehConfig.CURRENT_SCHEMA_VERSION);
+        if (!root.has("disabled_rule_ids")) {
+            root.add("disabled_rule_ids", new JsonArray());
+        }
+        LOGGER.info("Migrated NEH config schema from 1 to {}", NehConfig.CURRENT_SCHEMA_VERSION);
+        return true;
     }
 
     public boolean save(NehConfig next) {

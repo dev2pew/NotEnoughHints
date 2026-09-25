@@ -166,6 +166,35 @@ class RuleEvaluatorTest {
     }
 
     @Test
+    void playerDisabledRuleDoesNotMatchOrRequestInventory() {
+        Rule inventoryRule =
+                new Rule(
+                        "inventory-rule",
+                        true,
+                        10,
+                        new Condition.InventoryContains(
+                                io.github.dev2pew.notenoughhints.context.InventoryScope.PLAYER_INVENTORY,
+                                "minecraft:diamond",
+                                1,
+                                false),
+                        List.of(new RuleAction.ShowHint("inventory")));
+
+        RuleEvaluationResult result =
+                new RuleEvaluator()
+                        .evaluate(
+                                context,
+                                List.of(inventoryRule),
+                                Set.of(),
+                                Set.of("inventory-rule"));
+
+        assertEquals(Set.of(), result.visibleHintIds());
+        assertFalse(
+                new RuleEvaluator()
+                        .requiresInventory(
+                                List.of(inventoryRule), Set.of("inventory-rule")));
+    }
+
+    @Test
     void showActionCanEnableHiddenByDefaultHint() {
         Rule rule =
                 new Rule(

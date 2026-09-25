@@ -105,6 +105,8 @@ Exactly one of `literal` or `translate` is allowed when `description` is present
 
 Rules evaluate in ascending priority order. Rules with the same priority are ordered by ID. Later explicit visibility actions therefore override earlier actions targeting the same hint.
 
+A pack's `enabled: false` is creator-owned and cannot be overridden by the player. Player rule-disable preferences are stored separately in `neh.json` as stable rule IDs, so using the settings screen does not rewrite creator hint packs.
+
 Supported actions:
 
 - `show_hint`

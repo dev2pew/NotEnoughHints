@@ -66,7 +66,8 @@ public final class HintController {
                 ruleEvaluator.evaluate(
                         context,
                         currentDefinitions.rules(),
-                        currentDefinitions.defaultVisibleHintIds());
+                        currentDefinitions.defaultVisibleHintIds(),
+                        config.disabledRuleIds());
 
         List<HintGroupRenderState> nextStates =
                 new ArrayList<>(currentDefinitions.groups().size());

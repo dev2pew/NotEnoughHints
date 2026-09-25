@@ -14,5 +14,6 @@
   "option.notenoughhints.opacity.description": "Set the opacity used by NEH hint glyphs and descriptions.",
   "category.notenoughhints.hint_packs": "Hint packs",
   "option.notenoughhints.reload_hint_packs": "Reload hint packs",
-  "option.notenoughhints.reload_hint_packs.description": "Reload config/not-enough-hints/hints/*.json. Reopen this screen to refresh the load summary."
+  "option.notenoughhints.reload_hint_packs.description": "Reload config/not-enough-hints/hints/*.json. Reopen this screen to refresh the load summary.",
+  "category.notenoughhints.rules": "Rules"
 }

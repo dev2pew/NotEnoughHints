@@ -13,33 +13,57 @@ public final class RuleEvaluator {
             Comparator.comparingInt(Rule::priority).thenComparing(Rule::id);
 
     public List<Rule> matchingRules(ClientContext context, List<Rule> rules) {
+        return matchingRules(context, rules, Set.of());
+    }
+
+    public List<Rule> matchingRules(
+            ClientContext context, List<Rule> rules, Set<String> disabledRuleIds) {
         return rules.stream()
                 .filter(Rule::enabled)
+                .filter(rule -> !disabledRuleIds.contains(rule.id()))
                 .filter(rule -> rule.condition().test(context))
                 .sorted(ORDER)
                 .toList();
     }
 
     public boolean requiresInventory(List<Rule> rules) {
+        return requiresInventory(rules, Set.of());
+    }
+
+    public boolean requiresInventory(List<Rule> rules, Set<String> disabledRuleIds) {
         return rules.stream()
                 .filter(Rule::enabled)
+                .filter(rule -> !disabledRuleIds.contains(rule.id()))
                 .map(Rule::condition)
                 .anyMatch(Condition::requiresInventory);
     }
 
     public boolean requiresNestedInventory(List<Rule> rules) {
+        return requiresNestedInventory(rules, Set.of());
+    }
+
+    public boolean requiresNestedInventory(List<Rule> rules, Set<String> disabledRuleIds) {
         return rules.stream()
                 .filter(Rule::enabled)
+                .filter(rule -> !disabledRuleIds.contains(rule.id()))
                 .map(Rule::condition)
                 .anyMatch(Condition::requiresNestedInventory);
     }
 
     public RuleEvaluationResult evaluate(
             ClientContext context, List<Rule> rules, Set<String> defaultVisibleHintIds) {
+        return evaluate(context, rules, defaultVisibleHintIds, Set.of());
+    }
+
+    public RuleEvaluationResult evaluate(
+            ClientContext context,
+            List<Rule> rules,
+            Set<String> defaultVisibleHintIds,
+            Set<String> disabledRuleIds) {
         LinkedHashSet<String> visible = new LinkedHashSet<>(defaultVisibleHintIds);
         List<String> matchedRuleIds = new ArrayList<>();
 
-        for (Rule rule : matchingRules(context, rules)) {
+        for (Rule rule : matchingRules(context, rules, disabledRuleIds)) {
             matchedRuleIds.add(rule.id());
 
             for (RuleAction action : rule.actions()) {

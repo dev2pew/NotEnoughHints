@@ -49,11 +49,15 @@ public final class NotEnoughHintsClient implements ClientModInitializer {
 
         hintPackManager.load();
         HintPack hintPack = hintPackManager.current();
-        boolean collectInventory = ruleEvaluator.requiresInventory(hintPack.rules());
-        boolean collectNestedInventory = ruleEvaluator.requiresNestedInventory(hintPack.rules());
-
-        contextCollector.setInventoryRequirements(collectInventory, collectNestedInventory);
         hintController.replaceDefinitions(hintPack.groups(), hintPack.rules());
+        refreshObservationRequirements();
+
+        boolean collectInventory =
+                ruleEvaluator.requiresInventory(
+                        hintPack.rules(), configManager.current().disabledRuleIds());
+        boolean collectNestedInventory =
+                ruleEvaluator.requiresNestedInventory(
+                        hintPack.rules(), configManager.current().disabledRuleIds());
 
         LOGGER.info(
                 "Reloaded NEH hint packs; groups: {}, rules: {}, inventory indexing: {}, nested indexing: {}, issues: {}",
@@ -63,6 +67,18 @@ public final class NotEnoughHintsClient implements ClientModInitializer {
                 collectNestedInventory,
                 hintPackManager.issues().size());
         return hintPackManager.issues();
+    }
+
+    public static void refreshObservationRequirements() {
+        requireInitialized();
+        HintPack hintPack = hintPackManager.current();
+        boolean collectInventory =
+                ruleEvaluator.requiresInventory(
+                        hintPack.rules(), configManager.current().disabledRuleIds());
+        boolean collectNestedInventory =
+                ruleEvaluator.requiresNestedInventory(
+                        hintPack.rules(), configManager.current().disabledRuleIds());
+        contextCollector.setInventoryRequirements(collectInventory, collectNestedInventory);
     }
 
     @Override
@@ -80,8 +96,12 @@ public final class NotEnoughHintsClient implements ClientModInitializer {
         IntegrationBootstrap.registerAvailableAdapters(nestedInventoryAdapters);
 
         ruleEvaluator = new RuleEvaluator();
-        boolean collectInventory = ruleEvaluator.requiresInventory(hintPack.rules());
-        boolean collectNestedInventory = ruleEvaluator.requiresNestedInventory(hintPack.rules());
+        boolean collectInventory =
+                ruleEvaluator.requiresInventory(
+                        hintPack.rules(), configManager.current().disabledRuleIds());
+        boolean collectNestedInventory =
+                ruleEvaluator.requiresNestedInventory(
+                        hintPack.rules(), configManager.current().disabledRuleIds());
         contextCollector =
                 new ClientContextCollector(
                         keyBindingCatalog,
