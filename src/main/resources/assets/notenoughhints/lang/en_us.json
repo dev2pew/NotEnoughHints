@@ -17,5 +17,10 @@
   "option.notenoughhints.reload_hint_packs.description": "Reload config/not-enough-hints/hints/*.json. Reopen this screen to refresh the load summary.",
   "category.notenoughhints.rules": "Rules",
   "key.categories.notenoughhints": "Not Enough Hints",
-  "key.notenoughhints.open_config": "Open NEH settings"
+  "key.notenoughhints.open_config": "Open NEH settings",
+  "category.notenoughhints.placement": "Placement",
+  "option.notenoughhints.group_visible": "Visible",
+  "option.notenoughhints.group_anchor": "Anchor",
+  "option.notenoughhints.group_offset_x": "Horizontal offset",
+  "option.notenoughhints.group_offset_y": "Vertical offset"
 }

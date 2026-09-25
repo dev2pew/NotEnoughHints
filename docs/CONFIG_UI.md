@@ -22,11 +22,12 @@ The current screen edits:
 - binding-label visibility;
 - NEH HUD scale;
 - NEH HUD opacity;
-- per-rule player enable or disable overrides.
+- per-rule player enable or disable overrides;
+- per-group visibility, anchor, horizontal offset, and vertical offset.
 
 It also shows the currently loaded hint-group/rule counts and provides a manual hint-pack reload action. Reload recomputes the rule engine's inventory dependencies before the next context snapshot, so adding or removing an `inventory_contains` rule does not leave stale observation requirements behind. Invalid hint-pack files are isolated, recorded as load issues, and do not prevent independent valid files from loading.
 
-`neh.json` schema version 2 adds `disabled_rule_ids`. Schema version 1 files are migrated explicitly to version 2 with an empty override set, then written back through the same validated save path.
+`neh.json` schema version 3 stores player-owned `disabled_rule_ids` and `group_overrides`. Schema version 1 files migrate through version 2 before version 3; version 2 files add an empty `group_overrides` object. Migrated files are written back through the same validated save path.
 
 Saving the screen writes a complete schema-versioned `NehConfig` through `NehConfigManager`. The manager validates the replacement first, writes a sibling temporary file, and then replaces `neh.json`. The in-memory configuration changes only after the file replacement succeeds.
 
@@ -36,7 +37,6 @@ Because runtime HUD controllers read `NehConfigManager.current()`, saved present
 
 The first screen does not complete M6. Remaining work includes:
 
-- hint-group placement editing;
 - detailed validation and unresolved-reference reporting;
 - import workflow;
 - localized strings beyond English.

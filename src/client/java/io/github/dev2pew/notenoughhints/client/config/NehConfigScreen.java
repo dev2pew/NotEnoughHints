@@ -1,6 +1,9 @@
 package io.github.dev2pew.notenoughhints.client.config;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import dev.isxander.yacl3.api.ButtonOption;
@@ -8,16 +11,22 @@ import dev.isxander.yacl3.api.ConfigCategory;
 import dev.isxander.yacl3.api.LabelOption;
 import dev.isxander.yacl3.api.Option;
 import dev.isxander.yacl3.api.OptionDescription;
+import dev.isxander.yacl3.api.OptionGroup;
 import dev.isxander.yacl3.api.YetAnotherConfigLib;
 import dev.isxander.yacl3.api.controller.BooleanControllerBuilder;
+import dev.isxander.yacl3.api.controller.EnumControllerBuilder;
 import dev.isxander.yacl3.api.controller.FloatSliderControllerBuilder;
+import dev.isxander.yacl3.api.controller.IntegerFieldControllerBuilder;
 
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
 import io.github.dev2pew.notenoughhints.client.NotEnoughHintsClient;
+import io.github.dev2pew.notenoughhints.config.GroupOverride;
 import io.github.dev2pew.notenoughhints.config.HintPack;
 import io.github.dev2pew.notenoughhints.config.NehConfig;
+import io.github.dev2pew.notenoughhints.hud.HintGroupDefinition;
+import io.github.dev2pew.notenoughhints.hud.HudAnchor;
 import io.github.dev2pew.notenoughhints.rule.Rule;
 
 public final class NehConfigScreen {
@@ -108,6 +117,7 @@ public final class NehConfigScreen {
                                                                         .step(0.05F))
                                                 .build())
                                 .build())
+                .category(buildPlacementCategory(draft))
                 .category(buildHintPackCategory())
                 .category(buildRulesCategory(draft))
                 .save(
@@ -118,6 +128,102 @@ public final class NehConfigScreen {
                         })
                 .build()
                 .generateScreen(parent);
+    }
+
+    private static ConfigCategory buildPlacementCategory(Draft draft) {
+        HintPack pack = NotEnoughHintsClient.hintPackManager().current();
+        var builder =
+                ConfigCategory.createBuilder()
+                        .name(Component.translatable("category.notenoughhints.placement"));
+
+        if (pack.groups().isEmpty()) {
+            builder.option(LabelOption.create(Component.literal("No hint groups are currently loaded")));
+        }
+
+        for (HintGroupDefinition group : pack.groups()) {
+            builder.group(
+                    OptionGroup.createBuilder()
+                            .name(Component.literal(group.id()))
+                            .collapsed(true)
+                            .option(
+                                    Option.<Boolean>createBuilder()
+                                            .name(Component.translatable("option.notenoughhints.group_visible"))
+                                            .binding(
+                                                    true,
+                                                    () -> draft.groupOverride(group).visible(),
+                                                    value ->
+                                                            draft.updateGroupOverride(
+                                                                    group,
+                                                                    current ->
+                                                                            new GroupOverride(
+                                                                                    current.anchor(),
+                                                                                    current.offsetX(),
+                                                                                    current.offsetY(),
+                                                                                    value)))
+                                            .controller(BooleanControllerBuilder::create)
+                                            .build())
+                            .option(
+                                    Option.<HudAnchor>createBuilder()
+                                            .name(Component.translatable("option.notenoughhints.group_anchor"))
+                                            .binding(
+                                                    group.anchor(),
+                                                    () -> draft.groupOverride(group).anchor(),
+                                                    value ->
+                                                            draft.updateGroupOverride(
+                                                                    group,
+                                                                    current ->
+                                                                            new GroupOverride(
+                                                                                    value,
+                                                                                    current.offsetX(),
+                                                                                    current.offsetY(),
+                                                                                    current.visible())))
+                                            .controller(
+                                                    option ->
+                                                            EnumControllerBuilder.create(option)
+                                                                    .enumClass(HudAnchor.class)
+                                                                    .formatValue(
+                                                                            anchor ->
+                                                                                    Component.literal(
+                                                                                            formatAnchor(anchor))))
+                                            .build())
+                            .option(
+                                    Option.<Integer>createBuilder()
+                                            .name(Component.translatable("option.notenoughhints.group_offset_x"))
+                                            .binding(
+                                                    group.offsetX(),
+                                                    () -> draft.groupOverride(group).offsetX(),
+                                                    value ->
+                                                            draft.updateGroupOverride(
+                                                                    group,
+                                                                    current ->
+                                                                            new GroupOverride(
+                                                                                    current.anchor(),
+                                                                                    value,
+                                                                                    current.offsetY(),
+                                                                                    current.visible())))
+                                            .controller(IntegerFieldControllerBuilder::create)
+                                            .build())
+                            .option(
+                                    Option.<Integer>createBuilder()
+                                            .name(Component.translatable("option.notenoughhints.group_offset_y"))
+                                            .binding(
+                                                    group.offsetY(),
+                                                    () -> draft.groupOverride(group).offsetY(),
+                                                    value ->
+                                                            draft.updateGroupOverride(
+                                                                    group,
+                                                                    current ->
+                                                                            new GroupOverride(
+                                                                                    current.anchor(),
+                                                                                    current.offsetX(),
+                                                                                    value,
+                                                                                    current.visible())))
+                                            .controller(IntegerFieldControllerBuilder::create)
+                                            .build())
+                            .build());
+        }
+
+        return builder.build();
     }
 
     private static ConfigCategory buildHintPackCategory() {
@@ -198,6 +304,18 @@ public final class NehConfigScreen {
         return builder.build();
     }
 
+    private static String formatAnchor(HudAnchor anchor) {
+        String[] words = anchor.name().toLowerCase(Locale.ROOT).split("_");
+        StringBuilder text = new StringBuilder();
+        for (String word : words) {
+            if (!text.isEmpty()) {
+                text.append(' ');
+            }
+            text.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
+        }
+        return text.toString();
+    }
+
     private static final class Draft {
         private boolean enabled;
         private boolean debug;
@@ -205,6 +323,7 @@ public final class NehConfigScreen {
         private float opacity;
         private boolean showBindingLabels;
         private final Set<String> disabledRuleIds;
+        private final Map<String, GroupOverride> groupOverrides;
 
         private Draft(NehConfig config) {
             enabled = config.enabled();
@@ -213,6 +332,22 @@ public final class NehConfigScreen {
             opacity = config.opacity();
             showBindingLabels = config.showBindingLabels();
             disabledRuleIds = new HashSet<>(config.disabledRuleIds());
+            groupOverrides = new HashMap<>(config.groupOverrides());
+        }
+
+        private GroupOverride groupOverride(HintGroupDefinition group) {
+            return groupOverrides.getOrDefault(group.id(), defaultGroupOverride(group));
+        }
+
+        private void updateGroupOverride(
+                HintGroupDefinition group,
+                java.util.function.UnaryOperator<GroupOverride> update) {
+            GroupOverride next = update.apply(groupOverride(group));
+            if (next.equals(defaultGroupOverride(group))) {
+                groupOverrides.remove(group.id());
+            } else {
+                groupOverrides.put(group.id(), next);
+            }
         }
 
         private NehConfig toConfig() {
@@ -223,7 +358,12 @@ public final class NehConfigScreen {
                     scale,
                     opacity,
                     showBindingLabels,
-                    Set.copyOf(disabledRuleIds));
+                    Set.copyOf(disabledRuleIds),
+                    Map.copyOf(groupOverrides));
+        }
+
+        private static GroupOverride defaultGroupOverride(HintGroupDefinition group) {
+            return new GroupOverride(group.anchor(), group.offsetX(), group.offsetY(), true);
         }
     }
 }

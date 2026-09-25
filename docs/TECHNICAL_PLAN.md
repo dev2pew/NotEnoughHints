@@ -662,6 +662,7 @@ M6: configuration UX.
 - optional Mod Menu entry.
 - element placement editor.
 - unresolved-reference diagnostics.
+- player preferences remain separate from creator hint-pack JSON.
 
 M7: automated client tests and development releases.
 - GameTests.

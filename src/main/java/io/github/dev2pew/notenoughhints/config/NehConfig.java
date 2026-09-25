@@ -2,6 +2,7 @@ package io.github.dev2pew.notenoughhints.config;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.google.gson.annotations.SerializedName;
@@ -13,11 +14,13 @@ public record NehConfig(
         float scale,
         float opacity,
         @SerializedName("show_binding_labels") boolean showBindingLabels,
-        @SerializedName("disabled_rule_ids") Set<String> disabledRuleIds) {
-    public static final int CURRENT_SCHEMA_VERSION = 2;
+        @SerializedName("disabled_rule_ids") Set<String> disabledRuleIds,
+        @SerializedName("group_overrides") Map<String, GroupOverride> groupOverrides) {
+    public static final int CURRENT_SCHEMA_VERSION = 3;
 
     public NehConfig {
         disabledRuleIds = disabledRuleIds == null ? Set.of() : Set.copyOf(disabledRuleIds);
+        groupOverrides = groupOverrides == null ? Map.of() : Map.copyOf(groupOverrides);
     }
 
     public static NehConfig defaults() {
@@ -28,7 +31,8 @@ public record NehConfig(
                 1.0F,
                 1.0F,
                 true,
-                Set.of());
+                Set.of(),
+                Map.of());
     }
 
     public List<String> validate() {
@@ -45,6 +49,14 @@ public record NehConfig(
         }
         if (disabledRuleIds.stream().anyMatch(id -> id == null || id.isBlank())) {
             errors.add("disabled_rule_ids must not contain null or blank IDs");
+        }
+        if (groupOverrides.entrySet().stream()
+                .anyMatch(
+                        entry ->
+                                entry.getKey() == null
+                                        || entry.getKey().isBlank()
+                                        || entry.getValue() == null)) {
+            errors.add("group_overrides must use non-blank IDs and non-null values");
         }
 
         return List.copyOf(errors);

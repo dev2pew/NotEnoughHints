@@ -12,6 +12,7 @@ import net.minecraft.network.chat.Component;
 import io.github.dev2pew.notenoughhints.client.config.NehConfigManager;
 import io.github.dev2pew.notenoughhints.client.keybind.KeyBindingCatalog;
 import io.github.dev2pew.notenoughhints.client.keybind.KeyBindingDescriptor;
+import io.github.dev2pew.notenoughhints.config.GroupOverride;
 import io.github.dev2pew.notenoughhints.config.NehConfig;
 import io.github.dev2pew.notenoughhints.context.ClientContext;
 import io.github.dev2pew.notenoughhints.hud.HintDefinition;
@@ -80,6 +81,11 @@ public final class HintController {
         List<HintGroupRenderState> nextStates =
                 new ArrayList<>(currentDefinitions.groups().size());
         for (HintGroupDefinition group : currentDefinitions.groups()) {
+            GroupOverride override = config.groupOverrides().get(group.id());
+            if (override != null && !override.visible()) {
+                continue;
+            }
+
             List<ResolvedHint> resolved = new ArrayList<>();
             for (HintDefinition definition : group.hints()) {
                 if (!evaluation.visibleHintIds().contains(definition.id())) {
@@ -92,9 +98,9 @@ public final class HintController {
                 nextStates.add(
                         new HintGroupRenderState(
                                 true,
-                                group.anchor(),
-                                group.offsetX(),
-                                group.offsetY(),
+                                override == null ? group.anchor() : override.anchor(),
+                                override == null ? group.offsetX() : override.offsetX(),
+                                override == null ? group.offsetY() : override.offsetY(),
                                 group.flow(),
                                 group.entryGap(),
                                 config.scale(),

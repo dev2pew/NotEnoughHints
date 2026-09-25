@@ -86,16 +86,30 @@ public final class NehConfigManager {
     private static boolean migrate(JsonObject root) {
         int schemaVersion =
                 root.has("schema_version") ? root.get("schema_version").getAsInt() : 0;
-        if (schemaVersion != 1) {
-            return false;
+        boolean migrated = false;
+
+        if (schemaVersion == 1) {
+            if (!root.has("disabled_rule_ids")) {
+                root.add("disabled_rule_ids", new JsonArray());
+            }
+            root.addProperty("schema_version", 2);
+            schemaVersion = 2;
+            migrated = true;
+            LOGGER.info("Migrated NEH config schema from 1 to 2");
         }
 
-        root.addProperty("schema_version", NehConfig.CURRENT_SCHEMA_VERSION);
-        if (!root.has("disabled_rule_ids")) {
-            root.add("disabled_rule_ids", new JsonArray());
+        if (schemaVersion == 2) {
+            if (!root.has("group_overrides")) {
+                root.add("group_overrides", new JsonObject());
+            }
+            root.addProperty("schema_version", NehConfig.CURRENT_SCHEMA_VERSION);
+            migrated = true;
+            LOGGER.info(
+                    "Migrated NEH config schema from 2 to {}",
+                    NehConfig.CURRENT_SCHEMA_VERSION);
         }
-        LOGGER.info("Migrated NEH config schema from 1 to {}", NehConfig.CURRENT_SCHEMA_VERSION);
-        return true;
+
+        return migrated;
     }
 
     public boolean save(NehConfig next) {
