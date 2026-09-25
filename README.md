@@ -21,7 +21,7 @@ Source projects that should be supplied or inspected before implementation are t
 - Enumerate Minecraft keybindings registered by vanilla and installed mods.
 - Display selected keybindings using the player's current bindings.
 - Observe active client screens and identify registered handled-menu types.
-- Evaluate player state such as dimension, held item, and inventory contents.
+- Evaluate player state such as dimension, main/off-hand items, equipped armor slots, and inventory contents.
 - Support optional adapters for nested or mod-owned inventories.
 - Combine conditions with deterministic AND, OR, and NOT logic.
 - Render text, key hints, icons, and compact boxes through configurable HUD layouts.
