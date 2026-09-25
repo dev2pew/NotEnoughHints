@@ -11,6 +11,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import io.github.dev2pew.notenoughhints.context.EquipmentSlotKey;
+import io.github.dev2pew.notenoughhints.context.InventoryScope;
 import io.github.dev2pew.notenoughhints.hud.HintDefinition;
 import io.github.dev2pew.notenoughhints.hud.HintDescription;
 import io.github.dev2pew.notenoughhints.hud.HintFlow;
@@ -133,6 +134,14 @@ public final class HintPackJsonParser {
                                     requireString(object, "slot", path),
                                     path + ".slot"),
                             requireString(object, "item", path));
+            case "inventory_contains" ->
+                    new Condition.InventoryContains(
+                            parseEnum(
+                                    InventoryScope.class,
+                                    optionalString(object, "scope", "player_inventory"),
+                                    path + ".scope"),
+                            requireString(object, "item", path),
+                            optionalInt(object, "min_count", 1));
             case "mod_loaded" -> new Condition.ModLoaded(requireString(object, "mod", path));
             case "keybinding_exists" ->
                     new Condition.KeyBindingExists(requireString(object, "binding", path));

@@ -19,6 +19,7 @@ import io.github.dev2pew.notenoughhints.client.hud.HintRenderer;
 import io.github.dev2pew.notenoughhints.client.keybind.KeyBindingCatalog;
 import io.github.dev2pew.notenoughhints.config.HintPack;
 import io.github.dev2pew.notenoughhints.context.ClientContext;
+import io.github.dev2pew.notenoughhints.rule.RuleEvaluator;
 
 public final class NotEnoughHintsClient implements ClientModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger(NotEnoughHints.MOD_ID);
@@ -33,7 +34,9 @@ public final class NotEnoughHintsClient implements ClientModInitializer {
         HintPack hintPack = hintPackManager.current();
 
         KeyBindingCatalog keyBindingCatalog = new KeyBindingCatalog();
-        ClientContextCollector contextCollector = new ClientContextCollector(keyBindingCatalog);
+        boolean collectInventory = new RuleEvaluator().requiresInventory(hintPack.rules());
+        ClientContextCollector contextCollector =
+                new ClientContextCollector(keyBindingCatalog, collectInventory);
 
         HintController hintController =
                 new HintController(
@@ -67,6 +70,8 @@ public final class NotEnoughHintsClient implements ClientModInitializer {
                 NotEnoughHints.id("diagnostics"),
                 diagnosticsRenderer::render);
 
-        LOGGER.info("Not Enough Hints development build initialized");
+        LOGGER.info(
+                "Not Enough Hints development build initialized; inventory indexing: {}",
+                collectInventory);
     }
 }

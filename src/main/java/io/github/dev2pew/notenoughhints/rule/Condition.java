@@ -5,9 +5,14 @@ import java.util.Objects;
 
 import io.github.dev2pew.notenoughhints.context.ClientContext;
 import io.github.dev2pew.notenoughhints.context.EquipmentSlotKey;
+import io.github.dev2pew.notenoughhints.context.InventoryScope;
 
 public sealed interface Condition {
     boolean test(ClientContext context);
+
+    default boolean requiresInventory() {
+        return false;
+    }
 
     record All(List<Condition> conditions) implements Condition {
         public All {
@@ -17,6 +22,11 @@ public sealed interface Condition {
         @Override
         public boolean test(ClientContext context) {
             return conditions.stream().allMatch(condition -> condition.test(context));
+        }
+
+        @Override
+        public boolean requiresInventory() {
+            return conditions.stream().anyMatch(Condition::requiresInventory);
         }
     }
 
@@ -29,6 +39,11 @@ public sealed interface Condition {
         public boolean test(ClientContext context) {
             return conditions.stream().anyMatch(condition -> condition.test(context));
         }
+
+        @Override
+        public boolean requiresInventory() {
+            return conditions.stream().anyMatch(Condition::requiresInventory);
+        }
     }
 
     record Not(Condition condition) implements Condition {
@@ -39,6 +54,11 @@ public sealed interface Condition {
         @Override
         public boolean test(ClientContext context) {
             return !condition.test(context);
+        }
+
+        @Override
+        public boolean requiresInventory() {
+            return condition.requiresInventory();
         }
     }
 
@@ -124,6 +144,27 @@ public sealed interface Condition {
         @Override
         public boolean test(ClientContext context) {
             return itemId.equals(context.equipmentItem(slot));
+        }
+    }
+
+    record InventoryContains(InventoryScope scope, String itemId, int minimumCount)
+            implements Condition {
+        public InventoryContains {
+            Objects.requireNonNull(scope, "scope");
+            Objects.requireNonNull(itemId, "itemId");
+            if (minimumCount < 1) {
+                throw new IllegalArgumentException("minimumCount must be at least 1");
+            }
+        }
+
+        @Override
+        public boolean test(ClientContext context) {
+            return context.inventory().count(scope, itemId) >= minimumCount;
+        }
+
+        @Override
+        public boolean requiresInventory() {
+            return true;
         }
     }
 

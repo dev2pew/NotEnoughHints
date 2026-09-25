@@ -20,6 +20,13 @@ public final class RuleEvaluator {
                 .toList();
     }
 
+    public boolean requiresInventory(List<Rule> rules) {
+        return rules.stream()
+                .filter(Rule::enabled)
+                .map(Rule::condition)
+                .anyMatch(Condition::requiresInventory);
+    }
+
     public RuleEvaluationResult evaluate(
             ClientContext context, List<Rule> rules, Set<String> defaultVisibleHintIds) {
         LinkedHashSet<String> visible = new LinkedHashSet<>(defaultVisibleHintIds);

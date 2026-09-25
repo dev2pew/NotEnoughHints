@@ -223,6 +223,29 @@ Available keybinding:
 {"type": "keybinding_exists", "binding": "key.inventory"}
 ```
 
+Inventory contents:
+
+```json
+{
+  "type": "inventory_contains",
+  "scope": "player_inventory",
+  "item": "minecraft:ender_pearl",
+  "min_count": 4
+}
+```
+
+Supported inventory scopes:
+
+- `hotbar`: slots (0) through (8);
+- `main_inventory`: the remaining ordinary inventory slots, excluding the hotbar;
+- `armor`: head, chest, legs, and feet;
+- `offhand`: the off-hand equipment slot;
+- `player_inventory`: hotbar, main inventory, armor, and off-hand combined.
+
+`scope` defaults to `player_inventory`. `min_count` defaults to (1) and must be at least (1).
+
+NEH builds the inventory count index only when an enabled rule contains an `inventory_contains` condition. Multiple inventory conditions reuse that one index during the context refresh.
+
 ## Combined example
 
 ```json
@@ -273,4 +296,4 @@ Available keybinding:
 }
 ```
 
-Inventory-content predicates, nested-container adapters, custom mod integration state, sprite composition, and runtime reload controls are not part of this schema slice yet. They remain later development milestones.
+Nested-container adapters, custom mod integration state, sprite composition, and runtime reload controls are not part of this schema slice yet. They remain later development milestones.

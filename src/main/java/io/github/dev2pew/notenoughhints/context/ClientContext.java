@@ -12,6 +12,7 @@ public record ClientContext(
         String mainHandItemId,
         String offHandItemId,
         Map<EquipmentSlotKey, String> equipmentItems,
+        InventorySnapshot inventory,
         Set<String> loadedModIds,
         Set<String> keyBindingIds) {
 
@@ -22,6 +23,7 @@ public record ClientContext(
         mainHandItemId = nonNull(mainHandItemId);
         offHandItemId = nonNull(offHandItemId);
         equipmentItems = Map.copyOf(equipmentItems);
+        Objects.requireNonNull(inventory, "inventory");
         Objects.requireNonNull(loadedModIds, "loadedModIds");
         Objects.requireNonNull(keyBindingIds, "keyBindingIds");
     }

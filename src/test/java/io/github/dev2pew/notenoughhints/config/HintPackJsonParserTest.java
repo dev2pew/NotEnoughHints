@@ -9,6 +9,7 @@ import java.io.StringReader;
 import org.junit.jupiter.api.Test;
 
 import io.github.dev2pew.notenoughhints.context.EquipmentSlotKey;
+import io.github.dev2pew.notenoughhints.context.InventoryScope;
 import io.github.dev2pew.notenoughhints.hud.HintDescription;
 import io.github.dev2pew.notenoughhints.hud.HudAnchor;
 import io.github.dev2pew.notenoughhints.rule.Condition;
@@ -76,6 +77,37 @@ class HintPackJsonParserTest {
                         Condition.EquipmentSlotItem.class, condition.conditions().get(1));
         assertEquals(EquipmentSlotKey.HEAD, equipment.slot());
         assertInstanceOf(RuleAction.ShowHint.class, pack.rules().getFirst().actions().getFirst());
+    }
+
+    @Test
+    void parsesInventoryConditionDefaultsAndMinimumCount() {
+        String json =
+                """
+                {
+                  "schema_version": 1,
+                  "rules": [
+                    {
+                      "id": "inventory",
+                      "when": {
+                        "type": "inventory_contains",
+                        "scope": "hotbar",
+                        "item": "minecraft:blaze_rod",
+                        "min_count": 2
+                      },
+                      "actions": []
+                    }
+                  ]
+                }
+                """;
+
+        HintPack pack = parser.parse(new StringReader(json));
+        Condition.InventoryContains condition =
+                assertInstanceOf(
+                        Condition.InventoryContains.class, pack.rules().getFirst().condition());
+
+        assertEquals(InventoryScope.HOTBAR, condition.scope());
+        assertEquals("minecraft:blaze_rod", condition.itemId());
+        assertEquals(2, condition.minimumCount());
     }
 
     @Test

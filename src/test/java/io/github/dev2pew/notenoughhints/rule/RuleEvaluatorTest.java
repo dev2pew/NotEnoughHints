@@ -12,6 +12,8 @@ import org.junit.jupiter.api.Test;
 
 import io.github.dev2pew.notenoughhints.context.ClientContext;
 import io.github.dev2pew.notenoughhints.context.EquipmentSlotKey;
+import io.github.dev2pew.notenoughhints.context.InventoryScope;
+import io.github.dev2pew.notenoughhints.context.InventorySnapshot;
 
 class RuleEvaluatorTest {
     private final ClientContext context =
@@ -29,6 +31,12 @@ class RuleEvaluatorTest {
                             EquipmentSlotKey.CHEST, "minecraft:diamond_chestplate",
                             EquipmentSlotKey.LEGS, "minecraft:diamond_leggings",
                             EquipmentSlotKey.FEET, "minecraft:diamond_boots"),
+                    new InventorySnapshot(
+                            Map.of(
+                                    InventoryScope.HOTBAR,
+                                    Map.of("minecraft:blaze_rod", 3),
+                                    InventoryScope.PLAYER_INVENTORY,
+                                    Map.of("minecraft:blaze_rod", 3, "minecraft:shield", 1))),
                     Set.of("fabricloader", "notenoughhints"),
                     Set.of("key.inventory", "key.jump"));
 
@@ -115,6 +123,20 @@ class RuleEvaluatorTest {
 
         assertEquals(Set.of("always"), result.visibleHintIds());
         assertEquals(List.of("show", "hide-in-nether"), result.matchedRuleIds());
+    }
+
+    @Test
+    void inventoryConditionUsesRequestedScopeAndMinimumCount() {
+        Condition enough =
+                new Condition.InventoryContains(
+                        InventoryScope.HOTBAR, "minecraft:blaze_rod", 3);
+        Condition tooMany =
+                new Condition.InventoryContains(
+                        InventoryScope.HOTBAR, "minecraft:blaze_rod", 4);
+
+        assertTrue(enough.test(context));
+        assertFalse(tooMany.test(context));
+        assertTrue(enough.requiresInventory());
     }
 
     @Test
