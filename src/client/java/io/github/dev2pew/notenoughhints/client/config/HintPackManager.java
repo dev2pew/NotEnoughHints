@@ -22,6 +22,7 @@ import io.github.dev2pew.notenoughhints.config.HintPack;
 import io.github.dev2pew.notenoughhints.config.HintPackJsonParser;
 import io.github.dev2pew.notenoughhints.hud.HintGroupDefinition;
 import io.github.dev2pew.notenoughhints.rule.Rule;
+import io.github.dev2pew.notenoughhints.rule.RuleAction;
 
 public final class HintPackManager {
     private static final Logger LOGGER =
@@ -72,6 +73,10 @@ public final class HintPackManager {
 
     public List<String> issues() {
         return issues;
+    }
+
+    public Path directory() {
+        return hintsDirectory;
     }
 
     public void load() {
@@ -127,6 +132,8 @@ public final class HintPackManager {
             rules.addAll(pack.rules());
         }
 
+        loadIssues.addAll(findReferenceIssues(groups, rules));
+
         LOGGER.info(
                 "Loaded {} NEH hint groups and {} rules from {}",
                 groups.size(),
@@ -162,6 +169,32 @@ public final class HintPackManager {
     }
 
     private record LoadResult(HintPack pack, List<String> issues) {}
+
+    private static List<String> findReferenceIssues(
+            List<HintGroupDefinition> groups, List<Rule> rules) {
+        Set<String> hintIds = new HashSet<>();
+        groups.forEach(group -> group.hints().forEach(hint -> hintIds.add(hint.id())));
+
+        List<String> referenceIssues = new ArrayList<>();
+        for (Rule rule : rules) {
+            for (RuleAction action : rule.actions()) {
+                String hintId =
+                        switch (action) {
+                            case RuleAction.ShowHint show -> show.hintId();
+                            case RuleAction.HideHint hide -> hide.hintId();
+                        };
+                if (!hintIds.contains(hintId)) {
+                    referenceIssues.add(
+                            "rule '"
+                                    + rule.id()
+                                    + "' references missing hint '"
+                                    + hintId
+                                    + "'");
+                }
+            }
+        }
+        return List.copyOf(referenceIssues);
+    }
 
     private static String findConflict(
             HintPack pack, Set<String> groupIds, Set<String> hintIds, Set<String> ruleIds) {

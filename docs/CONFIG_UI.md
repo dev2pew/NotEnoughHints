@@ -25,7 +25,7 @@ The current screen edits:
 - per-rule player enable or disable overrides;
 - per-group visibility, anchor, horizontal offset, and vertical offset.
 
-It also shows the currently loaded hint-group/rule counts and provides a manual hint-pack reload action. Reload recomputes the rule engine's inventory dependencies before the next context snapshot, so adding or removing an `inventory_contains` rule does not leave stale observation requirements behind. Invalid hint-pack files are isolated, recorded as load issues, and do not prevent independent valid files from loading.
+It also shows the currently loaded hint-group/rule counts, each current hint-pack validation issue, and each unresolved keybinding selector. A folder action opens `config/not-enough-hints/hints` for importing or editing JSON hint packs, followed by a manual reload action. Reload recomputes the rule engine's inventory dependencies before the next context snapshot, so adding or removing an `inventory_contains` rule does not leave stale observation requirements behind. Invalid hint-pack files are isolated, recorded as load issues, and do not prevent independent valid files from loading. Rules whose actions reference missing hint IDs remain loaded but are reported as validation issues.
 
 `neh.json` schema version 3 stores player-owned `disabled_rule_ids` and `group_overrides`. Schema version 1 files migrate through version 2 before version 3; version 2 files add an empty `group_overrides` object. Migrated files are written back through the same validated save path.
 
@@ -33,12 +33,8 @@ Saving the screen writes a complete schema-versioned `NehConfig` through `NehCon
 
 Because runtime HUD controllers read `NehConfigManager.current()`, saved presentation changes apply on subsequent client ticks without reparsing files from the render callback.
 
-## Remaining M6 work
+## Remaining configuration work
 
-The first screen does not complete M6. Remaining work includes:
+The first-release M6 controls are implemented: settings, placement, player rule overrides, detailed load issues, unresolved keybinding reporting, hint-pack folder access, and runtime reload.
 
-- detailed validation and unresolved-reference reporting;
-- import workflow;
-- localized strings beyond English.
-
-A full visual rule builder remains outside the first-release requirement.
+A full visual rule builder and translations beyond English remain outside the current implementation.

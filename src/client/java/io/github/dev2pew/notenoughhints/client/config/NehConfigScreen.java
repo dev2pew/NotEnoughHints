@@ -18,6 +18,7 @@ import dev.isxander.yacl3.api.controller.EnumControllerBuilder;
 import dev.isxander.yacl3.api.controller.FloatSliderControllerBuilder;
 import dev.isxander.yacl3.api.controller.IntegerFieldControllerBuilder;
 
+import net.minecraft.Util;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
@@ -229,22 +230,52 @@ public final class NehConfigScreen {
     private static ConfigCategory buildHintPackCategory() {
         HintPackManager manager = NotEnoughHintsClient.hintPackManager();
         HintPack pack = manager.current();
-        String summary =
-                manager.issues().isEmpty()
-                        ? "No hint-pack load issues"
-                        : manager.issues().size() + " hint-pack load issue(s); see latest.log";
+        var builder =
+                ConfigCategory.createBuilder()
+                        .name(Component.translatable("category.notenoughhints.hint_packs"))
+                        .option(
+                                LabelOption.create(
+                                        Component.literal(
+                                                "Loaded "
+                                                        + pack.groups().size()
+                                                        + " group(s), "
+                                                        + pack.rules().size()
+                                                        + " rule(s)")));
 
-        return ConfigCategory.createBuilder()
-                .name(Component.translatable("category.notenoughhints.hint_packs"))
-                .option(
+        if (manager.issues().isEmpty()) {
+            builder.option(LabelOption.create(Component.literal("No hint-pack validation issues")));
+        } else {
+            for (String issue : manager.issues()) {
+                builder.option(LabelOption.create(Component.literal("Issue: " + issue)));
+            }
+        }
+
+        Set<String> unresolvedBindings =
+                NotEnoughHintsClient.hintDiagnostics().unresolvedBindingIds();
+        if (unresolvedBindings.isEmpty()) {
+            builder.option(LabelOption.create(Component.literal("No unresolved keybinding references")));
+        } else {
+            for (String bindingId : unresolvedBindings.stream().sorted().toList()) {
+                builder.option(
                         LabelOption.create(
-                                Component.literal(
-                                        "Loaded "
-                                                + pack.groups().size()
-                                                + " group(s), "
-                                                + pack.rules().size()
-                                                + " rule(s)")))
-                .option(LabelOption.create(Component.literal(summary)))
+                                Component.literal("Unresolved keybinding: " + bindingId)));
+            }
+        }
+
+        return builder.option(
+                        ButtonOption.createBuilder()
+                                .name(
+                                        Component.translatable(
+                                                "option.notenoughhints.open_hint_pack_folder"))
+                                .description(
+                                        OptionDescription.of(
+                                                Component.translatable(
+                                                        "option.notenoughhints.open_hint_pack_folder.description")))
+                                .action(
+                                        (screen, option) ->
+                                                Util.getPlatform()
+                                                        .openFile(manager.directory().toFile()))
+                                .build())
                 .option(
                         ButtonOption.createBuilder()
                                 .name(Component.translatable("option.notenoughhints.reload_hint_packs"))
