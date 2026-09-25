@@ -1,6 +1,7 @@
 package io.github.dev2pew.notenoughhints.client.hud;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -22,24 +23,26 @@ import io.github.dev2pew.notenoughhints.rule.RuleEvaluator;
 public final class HintController {
     private final NehConfigManager configManager;
     private final KeyBindingCatalog keyBindingCatalog;
-    private final HintGroupDefinition groupDefinition;
+    private final List<HintGroupDefinition> groups;
     private final List<Rule> rules;
     private final Set<String> defaultVisibleHintIds;
     private final RuleEvaluator ruleEvaluator = new RuleEvaluator();
-    private final AtomicReference<HintGroupRenderState> renderState =
-            new AtomicReference<>(HintGroupRenderState.hidden());
+    private final AtomicReference<List<HintGroupRenderState>> renderStates =
+            new AtomicReference<>(List.of());
 
     public HintController(
             NehConfigManager configManager,
             KeyBindingCatalog keyBindingCatalog,
-            HintGroupDefinition groupDefinition,
+            List<HintGroupDefinition> groups,
             List<Rule> rules) {
         this.configManager = configManager;
         this.keyBindingCatalog = keyBindingCatalog;
-        this.groupDefinition = groupDefinition;
+        this.groups = List.copyOf(groups);
         this.rules = List.copyOf(rules);
+        validateUniqueIds(this.groups);
         this.defaultVisibleHintIds =
-                groupDefinition.hints().stream()
+                this.groups.stream()
+                        .flatMap(group -> group.hints().stream())
                         .filter(HintDefinition::visibleByDefault)
                         .map(HintDefinition::id)
                         .collect(Collectors.toUnmodifiableSet());
@@ -48,36 +51,43 @@ public final class HintController {
     public void update(ClientContext context) {
         NehConfig config = configManager.current();
         if (!config.enabled() || !context.worldPresent()) {
-            renderState.set(HintGroupRenderState.hidden());
+            renderStates.set(List.of());
             return;
         }
 
         RuleEvaluationResult evaluation =
                 ruleEvaluator.evaluate(context, rules, defaultVisibleHintIds);
 
-        List<ResolvedHint> resolved = new ArrayList<>();
-        for (HintDefinition definition : groupDefinition.hints()) {
-            if (!evaluation.visibleHintIds().contains(definition.id())) {
-                continue;
+        List<HintGroupRenderState> nextStates = new ArrayList<>(groups.size());
+        for (HintGroupDefinition group : groups) {
+            List<ResolvedHint> resolved = new ArrayList<>();
+            for (HintDefinition definition : group.hints()) {
+                if (!evaluation.visibleHintIds().contains(definition.id())) {
+                    continue;
+                }
+                resolve(definition, config).ifPresent(resolved::add);
             }
-            resolve(definition, config).ifPresent(resolved::add);
+
+            if (!resolved.isEmpty()) {
+                nextStates.add(
+                        new HintGroupRenderState(
+                                true,
+                                group.anchor(),
+                                group.offsetX(),
+                                group.offsetY(),
+                                group.flow(),
+                                group.entryGap(),
+                                config.scale(),
+                                config.opacity(),
+                                resolved));
+            }
         }
 
-        renderState.set(
-                new HintGroupRenderState(
-                        !resolved.isEmpty(),
-                        groupDefinition.anchor(),
-                        groupDefinition.offsetX(),
-                        groupDefinition.offsetY(),
-                        groupDefinition.flow(),
-                        groupDefinition.entryGap(),
-                        config.scale(),
-                        config.opacity(),
-                        resolved));
+        renderStates.set(List.copyOf(nextStates));
     }
 
-    public HintGroupRenderState renderState() {
-        return renderState.get();
+    public List<HintGroupRenderState> renderStates() {
+        return renderStates.get();
     }
 
     private java.util.Optional<ResolvedHint> resolve(HintDefinition definition, NehConfig config) {
@@ -102,5 +112,21 @@ public final class HintController {
         }
 
         return java.util.Optional.of(new ResolvedHint(bindingText, description));
+    }
+
+    private static void validateUniqueIds(List<HintGroupDefinition> groups) {
+        Set<String> groupIds = new HashSet<>();
+        Set<String> hintIds = new HashSet<>();
+
+        for (HintGroupDefinition group : groups) {
+            if (!groupIds.add(group.id())) {
+                throw new IllegalArgumentException("Duplicate hint group id: " + group.id());
+            }
+            for (HintDefinition hint : group.hints()) {
+                if (!hintIds.add(hint.id())) {
+                    throw new IllegalArgumentException("Duplicate hint id: " + hint.id());
+                }
+            }
+        }
     }
 }

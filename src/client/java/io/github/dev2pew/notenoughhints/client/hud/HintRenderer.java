@@ -24,9 +24,19 @@ public final class HintRenderer {
     }
 
     public void render(GuiGraphics graphics, DeltaTracker deltaTracker) {
-        HintGroupRenderState state = controller.renderState();
         Minecraft client = Minecraft.getInstance();
-        if (!state.visible() || client.options.hideGui || client.player == null) {
+        if (client.options.hideGui || client.player == null) {
+            return;
+        }
+
+        for (HintGroupRenderState state : controller.renderStates()) {
+            renderGroup(graphics, client, state);
+        }
+    }
+
+    private static void renderGroup(
+            GuiGraphics graphics, Minecraft client, HintGroupRenderState state) {
+        if (!state.visible()) {
             return;
         }
 
