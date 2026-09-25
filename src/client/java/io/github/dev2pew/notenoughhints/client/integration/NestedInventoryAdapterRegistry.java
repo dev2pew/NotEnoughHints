@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
 import org.slf4j.Logger;
@@ -19,6 +20,7 @@ public final class NestedInventoryAdapterRegistry {
             LoggerFactory.getLogger(NotEnoughHints.MOD_ID + "/NestedInventoryAdapters");
 
     private final Map<String, Entry> entries = new LinkedHashMap<>();
+    private final AtomicLong adapterCallCount = new AtomicLong();
 
     public void register(NestedInventoryAdapter adapter) {
         Objects.requireNonNull(adapter, "adapter");
@@ -44,10 +46,12 @@ public final class NestedInventoryAdapterRegistry {
                     id,
                     () -> {
                         Entry entry = entries.get(id);
+                        adapterCallCount.incrementAndGet();
                         if (!entry.adapter.supports(stack)) {
                             return;
                         }
 
+                        adapterCallCount.incrementAndGet();
                         for (ItemStack nestedStack : entry.adapter.contents(stack)) {
                             if (nestedStack != null) {
                                 consumer.accept(nestedStack);
@@ -73,6 +77,10 @@ public final class NestedInventoryAdapterRegistry {
                     entry.adapter.id(),
                     exception);
         }
+    }
+
+    public long adapterCallCount() {
+        return adapterCallCount.get();
     }
 
     public List<String> activeAdapterIds() {

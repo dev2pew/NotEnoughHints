@@ -134,6 +134,8 @@ class RuleEvaluatorTest {
 
         assertEquals(Set.of("always"), result.visibleHintIds());
         assertEquals(List.of("show", "hide-in-nether"), result.matchedRuleIds());
+        assertEquals(2, result.evaluatedRuleCount());
+        assertEquals(0, result.inventorySelectorCount());
     }
 
     @Test
@@ -188,6 +190,8 @@ class RuleEvaluatorTest {
                                 Set.of("inventory-rule"));
 
         assertEquals(Set.of(), result.visibleHintIds());
+        assertEquals(0, result.evaluatedRuleCount());
+        assertEquals(0, result.inventorySelectorCount());
         assertFalse(
                 new RuleEvaluator()
                         .requiresInventory(
@@ -208,5 +212,6 @@ class RuleEvaluatorTest {
                 new RuleEvaluator().evaluate(context, List.of(rule), Set.of());
 
         assertEquals(Set.of("shield"), result.visibleHintIds());
+        assertEquals(1, result.evaluatedRuleCount());
     }
 }

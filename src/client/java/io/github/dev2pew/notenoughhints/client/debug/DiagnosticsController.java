@@ -25,7 +25,7 @@ public final class DiagnosticsController {
         this.hintController = hintController;
     }
 
-    public void update(ClientContext context) {
+    public void update(ClientContext context, ClientTickMetrics tickMetrics) {
         if (!configManager.current().debug()) {
             lines.set(List.of());
             return;
@@ -45,10 +45,16 @@ public final class DiagnosticsController {
                         "chest: " + display(context.equipmentItem(EquipmentSlotKey.CHEST)),
                         "legs: " + display(context.equipmentItem(EquipmentSlotKey.LEGS)),
                         "feet: " + display(context.equipmentItem(EquipmentSlotKey.FEET)),
+                        "selected_slot: " + context.selectedHotbarSlot(),
                         "keybindings: " + context.keyBindingIds().size(),
                         "active_rules: " + hintDiagnostics.activeRuleIds(),
                         "unresolved_bindings: " + hintDiagnostics.unresolvedBindingIds(),
                         "visible_hints: " + hintDiagnostics.visibleHintCount(),
+                        "context_refresh_ns: " + tickMetrics.contextRefreshNanos(),
+                        "rule_eval_ns: " + hintDiagnostics.ruleEvaluationNanos(),
+                        "evaluated_rules: " + hintDiagnostics.evaluatedRuleCount(),
+                        "inventory_selectors: " + hintDiagnostics.inventorySelectorCount(),
+                        "nested_adapter_calls: " + tickMetrics.nestedAdapterCalls(),
                         "mods: " + context.loadedModIds().size(),
                         "nested_adapters: " + nestedInventoryAdapters.activeAdapterIds(),
                         "disabled_adapters: " + nestedInventoryAdapters.disabledAdapterIds()));

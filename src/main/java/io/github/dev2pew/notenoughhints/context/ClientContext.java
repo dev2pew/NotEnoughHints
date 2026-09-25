@@ -11,6 +11,7 @@ public record ClientContext(
         String handledMenuId,
         String mainHandItemId,
         String offHandItemId,
+        int selectedHotbarSlot,
         Map<EquipmentSlotKey, String> equipmentItems,
         InventorySnapshot inventory,
         Set<String> loadedModIds,
@@ -22,10 +23,38 @@ public record ClientContext(
         handledMenuId = nonNull(handledMenuId);
         mainHandItemId = nonNull(mainHandItemId);
         offHandItemId = nonNull(offHandItemId);
+        if (selectedHotbarSlot < -1 || selectedHotbarSlot > 8) {
+            throw new IllegalArgumentException("selectedHotbarSlot must be -1 or between 0 and 8");
+        }
         equipmentItems = Map.copyOf(equipmentItems);
         Objects.requireNonNull(inventory, "inventory");
         Objects.requireNonNull(loadedModIds, "loadedModIds");
         Objects.requireNonNull(keyBindingIds, "keyBindingIds");
+    }
+
+    public ClientContext(
+            boolean worldPresent,
+            String dimensionId,
+            String screenClassName,
+            String handledMenuId,
+            String mainHandItemId,
+            String offHandItemId,
+            Map<EquipmentSlotKey, String> equipmentItems,
+            InventorySnapshot inventory,
+            Set<String> loadedModIds,
+            Set<String> keyBindingIds) {
+        this(
+                worldPresent,
+                dimensionId,
+                screenClassName,
+                handledMenuId,
+                mainHandItemId,
+                offHandItemId,
+                -1,
+                equipmentItems,
+                inventory,
+                loadedModIds,
+                keyBindingIds);
     }
 
     public String equipmentItem(EquipmentSlotKey slot) {

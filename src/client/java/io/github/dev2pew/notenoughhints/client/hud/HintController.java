@@ -68,15 +68,18 @@ public final class HintController {
 
         if (!config.enabled() || !context.worldPresent()) {
             renderStates.set(List.of());
-            diagnostics.set(new HintDiagnostics(List.of(), unresolvedBindingIds, 0));
+            diagnostics.set(new HintDiagnostics(List.of(), unresolvedBindingIds, 0, 0L, 0, 0));
             return;
         }
+
+        long ruleEvaluationStarted = System.nanoTime();
         RuleEvaluationResult evaluation =
                 ruleEvaluator.evaluate(
                         context,
                         currentDefinitions.rules(),
                         currentDefinitions.defaultVisibleHintIds(),
                         config.disabledRuleIds());
+        long ruleEvaluationNanos = System.nanoTime() - ruleEvaluationStarted;
 
         List<HintGroupRenderState> nextStates =
                 new ArrayList<>(currentDefinitions.groups().size());
@@ -117,7 +120,10 @@ public final class HintController {
                 new HintDiagnostics(
                         evaluation.matchedRuleIds(),
                         unresolvedBindingIds,
-                        visibleHintCount));
+                        visibleHintCount,
+                        ruleEvaluationNanos,
+                        evaluation.evaluatedRuleCount(),
+                        evaluation.inventorySelectorCount()));
     }
 
     public List<HintGroupRenderState> renderStates() {

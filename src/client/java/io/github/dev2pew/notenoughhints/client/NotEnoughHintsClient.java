@@ -14,6 +14,7 @@ import io.github.dev2pew.notenoughhints.NotEnoughHints;
 import io.github.dev2pew.notenoughhints.client.config.HintPackManager;
 import io.github.dev2pew.notenoughhints.client.config.NehConfigManager;
 import io.github.dev2pew.notenoughhints.client.context.ClientContextCollector;
+import io.github.dev2pew.notenoughhints.client.debug.ClientTickMetrics;
 import io.github.dev2pew.notenoughhints.client.debug.DiagnosticsController;
 import io.github.dev2pew.notenoughhints.client.debug.DiagnosticsRenderer;
 import io.github.dev2pew.notenoughhints.client.hud.HintController;
@@ -147,9 +148,19 @@ public final class NotEnoughHintsClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(
                 client -> {
                     NehKeyBindings.handle(client);
+
+                    long adapterCallsBefore = nestedInventoryAdapters.adapterCallCount();
+                    long contextStarted = System.nanoTime();
                     ClientContext context = contextCollector.collect(client);
+                    long contextRefreshNanos = System.nanoTime() - contextStarted;
+                    long nestedAdapterCalls =
+                            nestedInventoryAdapters.adapterCallCount() - adapterCallsBefore;
+
                     hintController.update(context);
-                    diagnosticsController.update(context);
+                    diagnosticsController.update(
+                            context,
+                            new ClientTickMetrics(
+                                    contextRefreshNanos, nestedAdapterCalls));
                 });
 
         HudElementRegistry.attachElementBefore(

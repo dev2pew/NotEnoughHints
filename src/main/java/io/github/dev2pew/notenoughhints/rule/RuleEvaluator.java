@@ -61,9 +61,25 @@ public final class RuleEvaluator {
             Set<String> defaultVisibleHintIds,
             Set<String> disabledRuleIds) {
         LinkedHashSet<String> visible = new LinkedHashSet<>(defaultVisibleHintIds);
-        List<String> matchedRuleIds = new ArrayList<>();
+        List<Rule> matchedRules = new ArrayList<>();
+        int evaluatedRuleCount = 0;
+        int inventorySelectorCount = 0;
 
-        for (Rule rule : matchingRules(context, rules, disabledRuleIds)) {
+        for (Rule rule : rules) {
+            if (!rule.enabled() || disabledRuleIds.contains(rule.id())) {
+                continue;
+            }
+
+            evaluatedRuleCount++;
+            inventorySelectorCount += rule.condition().inventorySelectorCount();
+            if (rule.condition().test(context)) {
+                matchedRules.add(rule);
+            }
+        }
+
+        matchedRules.sort(ORDER);
+        List<String> matchedRuleIds = new ArrayList<>(matchedRules.size());
+        for (Rule rule : matchedRules) {
             matchedRuleIds.add(rule.id());
 
             for (RuleAction action : rule.actions()) {
@@ -74,6 +90,7 @@ public final class RuleEvaluator {
             }
         }
 
-        return new RuleEvaluationResult(visible, matchedRuleIds);
+        return new RuleEvaluationResult(
+                visible, matchedRuleIds, evaluatedRuleCount, inventorySelectorCount);
     }
 }

@@ -18,6 +18,10 @@ public sealed interface Condition {
         return false;
     }
 
+    default int inventorySelectorCount() {
+        return 0;
+    }
+
     record All(List<Condition> conditions) implements Condition {
         public All {
             conditions = List.copyOf(conditions);
@@ -36,6 +40,16 @@ public sealed interface Condition {
         @Override
         public boolean requiresNestedInventory() {
             return conditions.stream().anyMatch(Condition::requiresNestedInventory);
+        }
+
+        @Override
+        public int inventorySelectorCount() {
+            return conditions.stream().mapToInt(Condition::inventorySelectorCount).sum();
+        }
+
+        @Override
+        public int inventorySelectorCount() {
+            return conditions.stream().mapToInt(Condition::inventorySelectorCount).sum();
         }
     }
 
@@ -78,6 +92,11 @@ public sealed interface Condition {
         @Override
         public boolean requiresNestedInventory() {
             return condition.requiresNestedInventory();
+        }
+
+        @Override
+        public int inventorySelectorCount() {
+            return condition.inventorySelectorCount();
         }
     }
 
@@ -190,6 +209,11 @@ public sealed interface Condition {
         @Override
         public boolean requiresNestedInventory() {
             return includeNested;
+        }
+
+        @Override
+        public int inventorySelectorCount() {
+            return 1;
         }
     }
 
