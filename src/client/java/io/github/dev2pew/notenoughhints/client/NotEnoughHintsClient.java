@@ -34,9 +34,12 @@ public final class NotEnoughHintsClient implements ClientModInitializer {
         HintPack hintPack = hintPackManager.current();
 
         KeyBindingCatalog keyBindingCatalog = new KeyBindingCatalog();
-        boolean collectInventory = new RuleEvaluator().requiresInventory(hintPack.rules());
+        RuleEvaluator ruleEvaluator = new RuleEvaluator();
+        boolean collectInventory = ruleEvaluator.requiresInventory(hintPack.rules());
+        boolean collectNestedInventory = ruleEvaluator.requiresNestedInventory(hintPack.rules());
         ClientContextCollector contextCollector =
-                new ClientContextCollector(keyBindingCatalog, collectInventory);
+                new ClientContextCollector(
+                        keyBindingCatalog, collectInventory, collectNestedInventory);
 
         HintController hintController =
                 new HintController(
@@ -71,7 +74,8 @@ public final class NotEnoughHintsClient implements ClientModInitializer {
                 diagnosticsRenderer::render);
 
         LOGGER.info(
-                "Not Enough Hints development build initialized; inventory indexing: {}",
-                collectInventory);
+                "Not Enough Hints development build initialized; inventory indexing: {}, nested indexing: {}",
+                collectInventory,
+                collectNestedInventory);
     }
 }

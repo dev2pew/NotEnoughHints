@@ -92,7 +92,8 @@ class HintPackJsonParserTest {
                         "type": "inventory_contains",
                         "scope": "hotbar",
                         "item": "minecraft:blaze_rod",
-                        "min_count": 2
+                        "min_count": 2,
+                        "include_nested": true
                       },
                       "actions": []
                     }
@@ -108,6 +109,7 @@ class HintPackJsonParserTest {
         assertEquals(InventoryScope.HOTBAR, condition.scope());
         assertEquals("minecraft:blaze_rod", condition.itemId());
         assertEquals(2, condition.minimumCount());
+        assertEquals(true, condition.includeNested());
     }
 
     @Test

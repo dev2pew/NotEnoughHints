@@ -36,7 +36,18 @@ class RuleEvaluatorTest {
                                     InventoryScope.HOTBAR,
                                     Map.of("minecraft:blaze_rod", 3),
                                     InventoryScope.PLAYER_INVENTORY,
-                                    Map.of("minecraft:blaze_rod", 3, "minecraft:shield", 1))),
+                                    Map.of("minecraft:blaze_rod", 3, "minecraft:shield", 1)),
+                            Map.of(
+                                    InventoryScope.HOTBAR,
+                                    Map.of("minecraft:blaze_rod", 3, "minecraft:ender_pearl", 4),
+                                    InventoryScope.PLAYER_INVENTORY,
+                                    Map.of(
+                                            "minecraft:blaze_rod",
+                                            3,
+                                            "minecraft:shield",
+                                            1,
+                                            "minecraft:ender_pearl",
+                                            4))),
                     Set.of("fabricloader", "notenoughhints"),
                     Set.of("key.inventory", "key.jump"));
 
@@ -129,14 +140,29 @@ class RuleEvaluatorTest {
     void inventoryConditionUsesRequestedScopeAndMinimumCount() {
         Condition enough =
                 new Condition.InventoryContains(
-                        InventoryScope.HOTBAR, "minecraft:blaze_rod", 3);
+                        InventoryScope.HOTBAR, "minecraft:blaze_rod", 3, false);
         Condition tooMany =
                 new Condition.InventoryContains(
-                        InventoryScope.HOTBAR, "minecraft:blaze_rod", 4);
+                        InventoryScope.HOTBAR, "minecraft:blaze_rod", 4, false);
 
         assertTrue(enough.test(context));
         assertFalse(tooMany.test(context));
         assertTrue(enough.requiresInventory());
+        assertFalse(enough.requiresNestedInventory());
+    }
+
+    @Test
+    void nestedInventoryConditionDoesNotChangeDirectInventorySemantics() {
+        Condition direct =
+                new Condition.InventoryContains(
+                        InventoryScope.HOTBAR, "minecraft:ender_pearl", 1, false);
+        Condition nested =
+                new Condition.InventoryContains(
+                        InventoryScope.HOTBAR, "minecraft:ender_pearl", 4, true);
+
+        assertFalse(direct.test(context));
+        assertTrue(nested.test(context));
+        assertTrue(nested.requiresNestedInventory());
     }
 
     @Test

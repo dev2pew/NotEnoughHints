@@ -244,7 +244,11 @@ Supported inventory scopes:
 
 `scope` defaults to `player_inventory`. `min_count` defaults to (1) and must be at least (1).
 
-NEH builds the inventory count index only when an enabled rule contains an `inventory_contains` condition. Multiple inventory conditions reuse that one index during the context refresh.
+Set `"include_nested": true` to include the immediate contents of vanilla component-backed container items, including shulker-style `container` contents and bundles. Nested lookup is intentionally one level deep. A container inside another container is not recursively opened.
+
+Direct and nested-inclusive counts are stored separately. A rule without `include_nested` therefore retains ordinary player-inventory semantics even when another rule enables nested scanning.
+
+NEH builds the inventory count index only when an enabled rule contains an `inventory_contains` condition. Nested component inspection is enabled only when an enabled rule sets `include_nested` to `true`. Multiple inventory conditions reuse those indexes during the context refresh.
 
 ## Combined example
 
@@ -296,4 +300,4 @@ NEH builds the inventory count index only when an enabled rule contains an `inve
 }
 ```
 
-Nested-container adapters, custom mod integration state, sprite composition, and runtime reload controls are not part of this schema slice yet. They remain later development milestones.
+Mod-owned nested-container adapters, custom mod integration state, sprite composition, and runtime reload controls are not part of this schema slice yet. Vanilla component-backed nested contents are supported one level deep.

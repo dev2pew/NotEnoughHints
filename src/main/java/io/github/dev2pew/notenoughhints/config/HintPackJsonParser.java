@@ -141,7 +141,8 @@ public final class HintPackJsonParser {
                                     optionalString(object, "scope", "player_inventory"),
                                     path + ".scope"),
                             requireString(object, "item", path),
-                            optionalInt(object, "min_count", 1));
+                            optionalInt(object, "min_count", 1),
+                            optionalBoolean(object, "include_nested", false));
             case "mod_loaded" -> new Condition.ModLoaded(requireString(object, "mod", path));
             case "keybinding_exists" ->
                     new Condition.KeyBindingExists(requireString(object, "binding", path));

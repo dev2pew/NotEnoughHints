@@ -27,6 +27,13 @@ public final class RuleEvaluator {
                 .anyMatch(Condition::requiresInventory);
     }
 
+    public boolean requiresNestedInventory(List<Rule> rules) {
+        return rules.stream()
+                .filter(Rule::enabled)
+                .map(Rule::condition)
+                .anyMatch(Condition::requiresNestedInventory);
+    }
+
     public RuleEvaluationResult evaluate(
             ClientContext context, List<Rule> rules, Set<String> defaultVisibleHintIds) {
         LinkedHashSet<String> visible = new LinkedHashSet<>(defaultVisibleHintIds);

@@ -14,6 +14,10 @@ public sealed interface Condition {
         return false;
     }
 
+    default boolean requiresNestedInventory() {
+        return false;
+    }
+
     record All(List<Condition> conditions) implements Condition {
         public All {
             conditions = List.copyOf(conditions);
@@ -27,6 +31,11 @@ public sealed interface Condition {
         @Override
         public boolean requiresInventory() {
             return conditions.stream().anyMatch(Condition::requiresInventory);
+        }
+
+        @Override
+        public boolean requiresNestedInventory() {
+            return conditions.stream().anyMatch(Condition::requiresNestedInventory);
         }
     }
 
@@ -44,6 +53,11 @@ public sealed interface Condition {
         public boolean requiresInventory() {
             return conditions.stream().anyMatch(Condition::requiresInventory);
         }
+
+        @Override
+        public boolean requiresNestedInventory() {
+            return conditions.stream().anyMatch(Condition::requiresNestedInventory);
+        }
     }
 
     record Not(Condition condition) implements Condition {
@@ -59,6 +73,11 @@ public sealed interface Condition {
         @Override
         public boolean requiresInventory() {
             return condition.requiresInventory();
+        }
+
+        @Override
+        public boolean requiresNestedInventory() {
+            return condition.requiresNestedInventory();
         }
     }
 
@@ -147,7 +166,8 @@ public sealed interface Condition {
         }
     }
 
-    record InventoryContains(InventoryScope scope, String itemId, int minimumCount)
+    record InventoryContains(
+            InventoryScope scope, String itemId, int minimumCount, boolean includeNested)
             implements Condition {
         public InventoryContains {
             Objects.requireNonNull(scope, "scope");
@@ -159,12 +179,17 @@ public sealed interface Condition {
 
         @Override
         public boolean test(ClientContext context) {
-            return context.inventory().count(scope, itemId) >= minimumCount;
+            return context.inventory().count(scope, itemId, includeNested) >= minimumCount;
         }
 
         @Override
         public boolean requiresInventory() {
             return true;
+        }
+
+        @Override
+        public boolean requiresNestedInventory() {
+            return includeNested;
         }
     }
 
