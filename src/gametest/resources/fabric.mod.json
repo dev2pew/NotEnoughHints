@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "notenoughhints-gametest",
+  "version": "1.0.0",
+  "name": "Not Enough Hints client game tests",
+  "environment": "client",
+  "entrypoints": {
+    "fabric-client-gametest": [
+      "io.github.dev2pew.notenoughhints.gametest.NotEnoughHintsClientGameTest"
+    ]
+  },
+  "depends": {
+    "notenoughhints": "*"
+  }
+}

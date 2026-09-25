@@ -41,3 +41,34 @@ jobs:
             !build/libs/*-dev.jar
           if-no-files-found: error
           retention-days: 7
+
+  client-game-test:
+    name: Production client game test
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7.0.1
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v6.0.1
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle 9.5.1
+        uses: gradle/actions/setup-gradle@v6.3.0
+        with:
+          gradle-version: "9.5.1"
+
+      - name: Run production client game test
+        run: gradle runProductionClientGameTest --no-daemon --stacktrace
+
+      - name: Upload client game test screenshots
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: not-enough-hints-client-gametest-${{ github.sha }}
+          path: build/run/clientGameTest/screenshots
+          if-no-files-found: warn
+          retention-days: 7
